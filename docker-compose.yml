@@ -1,0 +1,30 @@
+version: '3.9'
+
+services:
+  brain:
+    image: ghcr.io/0-5788719150923125/one:i
+    restart: unless-stopped
+    user: 1000:1000
+    build:
+      context: .
+      dockerfile: Dockerfile
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4000M
+    volumes:
+      - ./src:/one/src
+    environment:
+      BATCH_SIZE: 8
+      TRAINING_SAMPLES: 1000
+
+  kv:
+    image: redis:7.0.5-alpine
+    command: redis-server --save 600 1
+    restart: unless-stopped
+    volumes:
+      - redis:/data
+
+volumes:
+  redis:

@@ -1,0 +1,26 @@
+{
+  "name": "one",
+  "version": "1.1.1",
+  "description": "a federated neural network",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com:0-5788719150923125/one.git"
+  },
+  "author": "United Nations of Earth",
+  "license": "MIT",
+  "dependencies": {
+    "brain.js": "^2.0.0-beta.23",
+    "gun": "^0.2020.1239",
+    "redis": "^4.6.7",
+    "train-stream": "^1.0.4"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^7.6.0",
+    "prettier": "^2.8.8"
+  }
+}

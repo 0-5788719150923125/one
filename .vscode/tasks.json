@@ -1,0 +1,85 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "npm install",
+      "detail": "Install all node modules required for this project.",
+      "type": "shell",
+      "command": "npm install"
+    },
+    {
+      "label": "npm start",
+      "detail": "Start the service in node.",
+      "type": "shell",
+      "command": "npm start"
+    },
+    {
+      "label": "npm outdated",
+      "detail": "Check for outdated npm modules.",
+      "type": "shell",
+      "command": "npm outdated"
+    },
+    {
+      "label": "docker ps",
+      "detail": "View a list of all running containers.",
+      "type": "shell",
+      "command": "docker compose ps"
+    },
+    {
+      "label": "docker compose logs",
+      "detail": "View logs for this project.",
+      "type": "shell",
+      "command": "docker compose logs --follow"
+    },
+    {
+      "label": "docker compose exec",
+      "detail": "Open an interactive shell in the container.",
+      "type": "shell",
+      "command": "docker compose exec -it bot /bin/sh"
+    },
+    {
+      "label": "docker compose build",
+      "detail": "Build and tag a new Docker image from the Dockerfile.",
+      "type": "shell",
+      "command": "docker compose build"
+    },
+    {
+      "label": "docker compose push",
+      "detail": "Push the newly-built Docker image to a registry.",
+      "type": "shell",
+      "command": "docker compose push"
+    },
+    {
+      "label": "docker compose up (dev)",
+      "detail": "Start the service in Docker.",
+      "type": "shell",
+      "command": "docker compose up"
+    },
+    {
+      "label": "docker compose up -d",
+      "detail": "Start the service in Docker.",
+      "type": "shell",
+      "command": "docker compose up -d"
+    },
+    {
+      "label": "docker compose down",
+      "detail": "Stop the service in Docker.",
+      "type": "shell",
+      "command": "docker compose down --remove-orphans"
+    }
+  ],
+  "inputs": [
+    {
+      "type": "pickString",
+      "id": "env",
+      "description": "Guild, or global?",
+      "options": ["dev", "global"]
+    },
+    {
+      "type": "pickString",
+      "id": "task",
+      "description": "Deploy, or delete?",
+      "options": ["deploy", "delete"]
+    }
+  ]
+}
