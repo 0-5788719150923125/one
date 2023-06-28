@@ -8,7 +8,7 @@ import 'gun/lib/rindexed.js'
 import 'gun/lib/webrtc.js'
 import { faker } from '@faker-js/faker'
 import { addData, getDataLength } from './cache.js'
-import { ad, bc, wall } from './utils.js'
+import { ad, bc, contextLength, wall } from './utils.js'
 
 const trainingSamples = process.env.TRAINING_SAMPLES || 1000
 const totalSamples = await getDataLength('samples')
@@ -30,10 +30,10 @@ const gun = Gun({
     peers: ['https://59.src.eco/gun'],
     localStorage: false,
     radisk: false,
-    axe: false
+    axe: true
 })
 
-let lastMessage = faker.hacker.phrase()
+const context = [faker.hacker.phrase()]
 const hive = gun
     .get('neurons')
     .get('hive')
@@ -53,13 +53,17 @@ const hive = gun
             } else {
                 message = bullet.message
             }
-            const payload = JSON.stringify({
-                input: lastMessage,
+            const payload = {
+                input: context,
                 output: message
-            })
-            console.log(payload)
+            }
+            console.log(`input: ${context[context.length - 1]}`)
+            console.log(`output: ${message}`)
             if (message.includes(wall)) return
-            lastMessage = message
+            context.push(message)
+            while (context.length > contextLength) {
+                context.shift()
+            }
             await addData(`samples`, JSON.stringify(payload))
         } catch (err) {
             console.error(err)
@@ -68,7 +72,7 @@ const hive = gun
 
 function createTrainingData() {
     return {
-        input: faker.hacker.phrase(),
+        input: [faker.hacker.phrase()],
         output: faker.hacker.phrase()
     }
 }

@@ -16,7 +16,7 @@ services:
     volumes:
       - ./src:/one/src
     environment:
-      BATCH_SIZE: 8
+      BATCH_SIZE: 4
       TRAINING_SAMPLES: 256
 
   kv:

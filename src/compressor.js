@@ -3,21 +3,21 @@ import { parentPort } from 'worker_threads'
 import { recurrent, utilities } from 'brain.js'
 import { TrainStream } from 'train-stream'
 import { getRandomData } from './cache.js'
-import { ad, bc, elapsedTimeGenerator, wall } from './utils.js'
+import { ad, bc, contextLength, elapsedTimeGenerator, wall } from './utils.js'
 
 const batchSize = process.env.BATCH_SIZE || 23
 const initialRate = 0.001
 let currentRate = initialRate
 const initialDecay = 0.999
-const regc = 0.0001
+const regc = 0.00001
 const clipval = 5
 const errorThresh = 0.000001
 const logPeriod = 1
 const callbackPeriod = 100
-const allowedCharacters = `¶abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 ,;:.?!()[]"'\`$@#%^&*-=+-{}\\/`
+const allowedCharacters = `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 ,;:.?!()[]"'\`$@#%^&*-=+-{}\\/¶`
 
 const net = new recurrent.GRU({
-    hiddenLayers: new Array(6).fill(128),
+    hiddenLayers: new Array(9).fill(96),
     decayRate: initialDecay,
     learningRate: initialRate,
     clipval,
@@ -30,7 +30,7 @@ const net = new recurrent.GRU({
 parentPort.on('message', async (data) => {
     if (data.compressor !== 'start') return
 
-    let lrSchedule = null
+    let schedule = null
     const timer = elapsedTimeGenerator()
 
     let i = 0
@@ -76,16 +76,16 @@ parentPort.on('message', async (data) => {
             fs.writeFileSync(latest, JSON.stringify(await net.toJSON()))
         },
         floodCallback: async () => {
-            let lrStep = lrSchedule?.next()
-            if (lrSchedule === null || lrStep.done === true) {
-                lrSchedule = cosineScheduler(
+            let step = schedule?.next()
+            if (schedule === null || step.done === true) {
+                schedule = cosineScheduler(
                     errorThresh,
                     initialRate,
                     callbackPeriod * 2
                 )
-                lrStep = lrSchedule.next()
+                step = schedule.next()
             }
-            currentRate = lrStep.value
+            currentRate = step.value
             net.updateTrainingOptions({
                 learningRate: currentRate
             })
@@ -130,7 +130,11 @@ async function createBatch(batchSize) {
     const batch = await getRandomData('samples', batchSize)
     return batch.map((string) => {
         const value = JSON.parse(string)
-        return `${value.input}${wall}${value.output}`
+        const maxLength = Math.floor(Math.random() * contextLength) + 1
+        while (value.input.length > maxLength) {
+            value.input.shift()
+        }
+        return `${value.input.join(' ')}${wall}${value.output}`
     })
 }
 

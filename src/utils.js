@@ -1,4 +1,5 @@
 export const wall = '¶'
+export const contextLength = 9
 
 export const bc = {
     FOLD: '\x1b[34m',
