@@ -6,5 +6,7 @@
   "prettier.useEditorConfig": true,
   "terminal.integrated.scrollback": 10000,
   "workbench.editor.limit.value": 3,
-  "workbench.editor.limit.enabled": true
+  "workbench.editor.limit.enabled": true,
+  "editor.experimental.asyncTokenization": true,
+  "editor.maxTokenizationLineLength": 200000
 }

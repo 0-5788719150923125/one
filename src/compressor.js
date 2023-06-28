@@ -3,21 +3,21 @@ import { parentPort } from 'worker_threads'
 import { recurrent, utilities } from 'brain.js'
 import { TrainStream } from 'train-stream'
 import { getRandomData } from './cache.js'
-import { ad, bc, getRandomIdentity, wall } from './utils.js'
+import { ad, bc, elapsedTimeGenerator, wall } from './utils.js'
 
 const batchSize = process.env.BATCH_SIZE || 23
 const initialRate = 0.001
-let currentRate = null
+let currentRate = initialRate
 const initialDecay = 0.999
 const regc = 0.0001
-const clipval = 23
+const clipval = 5
 const errorThresh = 0.000001
 const logPeriod = 1
 const callbackPeriod = 100
 const allowedCharacters = `¶abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 ,;:.?!()[]"'\`$@#%^&*-=+-{}\\/`
 
 const net = new recurrent.GRU({
-    hiddenLayers: new Array(4).fill(128),
+    hiddenLayers: new Array(6).fill(128),
     decayRate: initialDecay,
     learningRate: initialRate,
     clipval,
@@ -28,19 +28,22 @@ const net = new recurrent.GRU({
 })
 
 parentPort.on('message', async (data) => {
-    if (data.encoder !== 'start') return
+    if (data.compressor !== 'start') return
 
     let lrSchedule = null
+    const timer = elapsedTimeGenerator()
 
     let i = 0
-    let latest = '/one/src/networks/encoder.0.json'
+    let latest = '/one/src/networks/compressor.0.json'
     while (fs.existsSync(latest)) {
         i = i + 1
-        if (fs.existsSync(`/one/src/networks/encoder.${i.toString()}.json`)) {
-            latest = `/one/src/networks/encoder.${i.toString()}.json`
+        if (
+            fs.existsSync(`/one/src/networks/compressor.${i.toString()}.json`)
+        ) {
+            latest = `/one/src/networks/compressor.${i.toString()}.json`
             continue
         }
-        console.log('loading saved encoder state...')
+        console.log('loading saved compressor state...')
         console.log(bc.ROOT + latest + ad.TEXT)
         net.fromJSON(JSON.parse(fs.readFileSync(latest)))
         break
@@ -57,25 +60,18 @@ parentPort.on('message', async (data) => {
         iterations: Infinity,
         callbackPeriod,
         callback: async (details) => {
-            console.log('generating text from random id...')
-            const text = net.run(`${getRandomIdentity()}${wall}`, false)
+            console.log('generating text...')
+            const text = net.run(`What is your name?${wall}`, false)
             console.log(bc.ROOT + text + ad.TEXT)
-
-            console.log('generating id from previous text...')
-            const id = net.run(`${text}${wall}`, false)
-            console.log(bc.ROOT + id + ad.TEXT)
-
-            console.log('validation text from generated id...')
-            const validation = net.run(`${id}${wall}`, false)
-            console.log(bc.ROOT + validation + ad.TEXT)
 
             if (details.iterations === 0) return
 
             let i = 0
-            let latest = '/one/src/networks/encoder.0.json'
+            let latest = '/one/src/networks/compressor.0.json'
+            fs.mkdirSync('/one/src/networks', { recursive: true })
             while (fs.existsSync(latest)) {
                 i = i + 1
-                latest = `/one/src/networks/encoder.${i.toString()}.json`
+                latest = `/one/src/networks/compressor.${i.toString()}.json`
             }
             fs.writeFileSync(latest, JSON.stringify(await net.toJSON()))
         },
@@ -85,7 +81,7 @@ parentPort.on('message', async (data) => {
                 lrSchedule = cosineScheduler(
                     errorThresh,
                     initialRate,
-                    callbackPeriod * 10
+                    callbackPeriod * 2
                 )
                 lrStep = lrSchedule.next()
             }
@@ -107,9 +103,9 @@ parentPort.on('message', async (data) => {
             console.log(
                 `{"iterations": ${
                     details.iterations
-                }, "lr": ${currentRate}, "dr": ${initialDecay}, "error": ${
-                    color + details.error + ad.TEXT
-                }}`
+                }, "lr": ${currentRate}, "elapsed": ${(
+                    timer.next().value / 1000
+                ).toString()}/s, "error": ${color + details.error + ad.TEXT}}`
             )
         },
         doneTrainingCallback: async function (stats) {
@@ -131,14 +127,10 @@ parentPort.on('message', async (data) => {
 })
 
 async function createBatch(batchSize) {
-    const batch = await getRandomData('encoder', batchSize)
+    const batch = await getRandomData('samples', batchSize)
     return batch.map((string) => {
         const value = JSON.parse(string)
-        if (Math.random() < 0.5) {
-            return `${value.input}${wall}${getRandomIdentity()}`
-        } else {
-            return `${getRandomIdentity()}${wall}${value.output}`
-        }
+        return `${value.input}${wall}${value.output}`
     })
 }
 

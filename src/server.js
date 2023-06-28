@@ -11,18 +11,18 @@ import { addData, getDataLength } from './cache.js'
 import { ad, bc, wall } from './utils.js'
 
 const trainingSamples = process.env.TRAINING_SAMPLES || 1000
-const totalCachedSamples = await getDataLength('encoder')
+const totalSamples = await getDataLength('samples')
 console.log(
     'found ' +
         bc.ROOT +
-        totalCachedSamples.toString() +
+        totalSamples.toString() +
         ad.TEXT +
         ' training samples...'
 )
-if (totalCachedSamples < trainingSamples) {
+if (totalSamples < trainingSamples) {
     console.log('generating additional samples...')
     for (let i = 0; i < trainingSamples; i++) {
-        await addData(`encoder`, JSON.stringify(createTrainingData()))
+        await addData(`samples`, JSON.stringify(createTrainingData()))
     }
 }
 
@@ -30,7 +30,7 @@ const gun = Gun({
     peers: ['https://59.src.eco/gun'],
     localStorage: false,
     radisk: false,
-    axe: true
+    axe: false
 })
 
 let lastMessage = faker.hacker.phrase()
@@ -60,7 +60,7 @@ const hive = gun
             console.log(payload)
             if (message.includes(wall)) return
             lastMessage = message
-            await addData(`encoder`, JSON.stringify(payload))
+            await addData(`samples`, JSON.stringify(payload))
         } catch (err) {
             console.error(err)
         }
@@ -75,7 +75,7 @@ function createTrainingData() {
 
 const worker = new Worker('./src/compressor.js')
 
-worker.postMessage({ encoder: 'start' })
+worker.postMessage({ compressor: 'start' })
 
 worker.on('message', (message) => {
     console.log(message)
