@@ -16,11 +16,11 @@ services:
     volumes:
       - ./src:/one/src
     environment:
-      NETWORK_WIDTH: 128
-      NETWORK_DEPTH: 4
+      NETWORK_WIDTH: 144
+      NETWORK_DEPTH: 6
       BATCH_SIZE: 6
       TRAINING_SAMPLES: 1024
-      LEARNING_RATE: 0.00333
+      LEARNING_RATE: 0.001
       REGC: 0.00001
       CLIPVAL: 23
 
