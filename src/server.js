@@ -8,7 +8,7 @@ import 'gun/lib/rindexed.js'
 import 'gun/lib/webrtc.js'
 import { faker } from '@faker-js/faker'
 import { addData, getDataLength } from './cache.js'
-import { ad, bc, contextLength, wall } from './utils.js'
+import { ad, bc, wall } from './utils.js'
 
 const trainingSamples = process.env.TRAINING_SAMPLES || 1000
 const totalSamples = await getDataLength('samples')
@@ -61,7 +61,7 @@ const hive = gun
             console.log(`output: ${message}`)
             if (message.includes(wall)) return
             context.push(message)
-            while (context.length > contextLength) {
+            while (context.length > 23) {
                 context.shift()
             }
             await addData(`samples`, JSON.stringify(payload))

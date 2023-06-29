@@ -2,23 +2,24 @@ import fs from 'node:fs'
 import { parentPort } from 'worker_threads'
 import { recurrent, utilities } from 'brain.js'
 import { TrainStream } from 'train-stream'
-import YSON from 'gun/lib/yson.js'
 import { getRandomData } from './cache.js'
-import { ad, bc, contextLength, elapsedTimeGenerator, wall } from './utils.js'
+import { ad, bc, elapsedTimeGenerator, wall } from './utils.js'
 
 const batchSize = process.env.BATCH_SIZE || 23
+const contextLength = process.env.CONTEXT_LENGT || 3
+const iterations = 1000000000
 const initialRate = 0.001
 let currentRate = initialRate
 const decayRate = 0.999
-const regc = 0.001
-const clipval = 5
+const regc = process.env.REGC || 0.001
+const clipval = process.env.CLIPVAL || 5
 const errorThresh = 0.000001
 const logPeriod = 1
 const callbackPeriod = 100
 const allowedCharacters = `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 ,;:.?!()[]"'\`$@#%^&*-=+-{}\\/¶`
 
 const net = new recurrent.GRU({
-    hiddenLayers: new Array(8).fill(96),
+    hiddenLayers: [111, 99, 77, 66],
     learningRate: initialRate,
     decayRate,
     clipval,
@@ -58,12 +59,27 @@ parentPort.on('message', async (data) => {
         learningRate: initialRate,
         errorThresh,
         logPeriod,
-        iterations: Infinity,
+        iterations,
         callbackPeriod,
         callback: async (details) => {
-            console.log('generating text...')
-            const text = net.run(`What is your name?${wall}`, false)
-            console.log(bc.ROOT + text + ad.TEXT)
+            const tests = [
+                { sample: false, temperature: 0.0 },
+                { sample: true, temperature: 0.023 },
+                { sample: true, temperature: 0.3 },
+                { sample: true, temperature: 0.7 }
+            ]
+
+            for (const test of tests) {
+                console.log(
+                    `generating text at temperature of ${test.temperature.toString()}`
+                )
+                const text = net.run(
+                    `What is your name?${wall}`,
+                    test.sample,
+                    test.temperature
+                )
+                console.log(bc.ROOT + text + ad.TEXT)
+            }
 
             if (details.iterations === 0) return
 
@@ -74,7 +90,7 @@ parentPort.on('message', async (data) => {
                 i = i + 1
                 latest = `/one/src/networks/compressor.${i.toString()}.json`
             }
-            fs.writeFileSync(latest, YSON.stringifyAsync(await net.toJSON()))
+            fs.writeFileSync(latest, JSON.stringify(net.toJSON()))
         },
         floodCallback: async () => {
             let step = schedule?.next()
@@ -135,7 +151,7 @@ async function createBatch(batchSize) {
         while (value.input.length > maxLength) {
             value.input.shift()
         }
-        return `${value.input.join(' ')}${wall}${value.output}`
+        return `${value.input.join(wall)}${wall}${value.output}`
     })
 }
 
