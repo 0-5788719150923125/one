@@ -9,8 +9,8 @@ services:
       context: .
       dockerfile: Dockerfile.ARM
     environment:
-      NETWORK_WIDTH: 128
-      NETWORK_DEPTH: 6
+      NETWORK_WIDTH: 256
+      NETWORK_DEPTH: 12
       BATCH_SIZE: 6
       TRAINING_SAMPLES: 1024
       LEARNING_RATE: 0.001
