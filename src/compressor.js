@@ -5,21 +5,23 @@ import { TrainStream } from 'train-stream'
 import { getRandomData } from './cache.js'
 import { ad, bc, elapsedTimeGenerator, wall } from './utils.js'
 
-const batchSize = process.env.BATCH_SIZE || 23
-const contextLength = process.env.CONTEXT_LENGT || 3
+const batchSize = Number(process.env.BATCH_SIZE) || 23
+const networkWidth = Number(process.env.NETWORK_WIDTH) || 64
+const networkDepth = Number(process.env.NETWORK_DEPTH) || 2
+const contextLength = Number(process.env.CONTEXT_LENGTH) || 3
 const iterations = 1000000000
-const initialRate = 0.001
+const initialRate = Number(process.env.LEARNING_RATE) || 0.001
 let currentRate = initialRate
 const decayRate = 0.999
 const regc = process.env.REGC || 0.00001
-const clipval = process.env.CLIPVAL || 5
+const clipval = Number(process.env.CLIPVAL) || 5
 const errorThresh = 0.000001
 const logPeriod = 1
 const callbackPeriod = 100
 const allowedCharacters = `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 ,;:.?!()[]"'\`$@#%^&*-=+-{}\\/¶`
 
 const net = new recurrent.GRU({
-    hiddenLayers: [128, 128, 128, 128, 128, 128],
+    hiddenLayers: new Array(networkDepth).fill(networkWidth),
     learningRate: initialRate,
     decayRate,
     clipval,
