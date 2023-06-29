@@ -2,14 +2,15 @@ import fs from 'node:fs'
 import { parentPort } from 'worker_threads'
 import { recurrent, utilities } from 'brain.js'
 import { TrainStream } from 'train-stream'
+import YSON from 'gun/lib/yson.js'
 import { getRandomData } from './cache.js'
 import { ad, bc, contextLength, elapsedTimeGenerator, wall } from './utils.js'
 
 const batchSize = process.env.BATCH_SIZE || 23
 const initialRate = 0.001
 let currentRate = initialRate
-const initialDecay = 0.999
-const regc = 0.00001
+const decayRate = 0.999
+const regc = 0.001
 const clipval = 5
 const errorThresh = 0.000001
 const logPeriod = 1
@@ -17,9 +18,9 @@ const callbackPeriod = 100
 const allowedCharacters = `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 ,;:.?!()[]"'\`$@#%^&*-=+-{}\\/¶`
 
 const net = new recurrent.GRU({
-    hiddenLayers: new Array(9).fill(96),
-    decayRate: initialDecay,
+    hiddenLayers: new Array(8).fill(96),
     learningRate: initialRate,
+    decayRate,
     clipval,
     errorThresh,
     regc,
@@ -73,7 +74,7 @@ parentPort.on('message', async (data) => {
                 i = i + 1
                 latest = `/one/src/networks/compressor.${i.toString()}.json`
             }
-            fs.writeFileSync(latest, JSON.stringify(await net.toJSON()))
+            fs.writeFileSync(latest, YSON.stringifyAsync(await net.toJSON()))
         },
         floodCallback: async () => {
             let step = schedule?.next()

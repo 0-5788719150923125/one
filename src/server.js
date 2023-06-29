@@ -30,7 +30,7 @@ const gun = Gun({
     peers: ['https://59.src.eco/gun'],
     localStorage: false,
     radisk: false,
-    axe: true
+    axe: false
 })
 
 const context = [faker.hacker.phrase()]
