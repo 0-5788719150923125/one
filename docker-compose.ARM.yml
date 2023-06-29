@@ -5,6 +5,9 @@ services:
     image: ghcr.io/0-5788719150923125/one:i
     restart: unless-stopped
     user: 1000:1000
+    build:
+      context: .
+      dockerfile: Dockerfile.ARM
     environment:
       BATCH_SIZE: 6
       TRAINING_SAMPLES: 256
