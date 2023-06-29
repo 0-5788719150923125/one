@@ -17,7 +17,7 @@ services:
       - ./src:/one/src
     environment:
       BATCH_SIZE: 6
-      TRAINING_SAMPLES: 256
+      TRAINING_SAMPLES: 1024
       REGC: 0.00001
       CLIPVAL: 23
 

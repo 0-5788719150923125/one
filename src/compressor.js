@@ -11,7 +11,7 @@ const iterations = 1000000000
 const initialRate = 0.001
 let currentRate = initialRate
 const decayRate = 0.999
-const regc = process.env.REGC || 0.001
+const regc = process.env.REGC || 0.00001
 const clipval = process.env.CLIPVAL || 5
 const errorThresh = 0.000001
 const logPeriod = 1
@@ -19,7 +19,7 @@ const callbackPeriod = 100
 const allowedCharacters = `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 ,;:.?!()[]"'\`$@#%^&*-=+-{}\\/¶`
 
 const net = new recurrent.GRU({
-    hiddenLayers: [111, 99, 77, 66],
+    hiddenLayers: [128, 128, 128, 128, 128, 128],
     learningRate: initialRate,
     decayRate,
     clipval,
