@@ -2,13 +2,14 @@ version: '3.9'
 
 services:
   brain:
-    image: ghcr.io/0-5788719150923125/one:i
+    image: ghcr.io/0-5788719150923125/one:latest
     restart: unless-stopped
     user: 1000:1000
     build:
       context: .
       dockerfile: Dockerfile.ARM
     environment:
+      FOCUS: support
       NETWORK_WIDTH: 256
       NETWORK_DEPTH: 12
       BATCH_SIZE: 6

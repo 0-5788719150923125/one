@@ -1,4 +1,5 @@
 const config = {
+    focus: process.env.FOCUS || 'trade',
     batchSize: Number(process.env.BATCH_SIZE) || 23,
     trainingSamples: Number(process.env.TRAINING_SAMPLES) || 1024,
     networkWidth: Number(process.env.NETWORK_WIDTH) || 64,

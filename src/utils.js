@@ -10,7 +10,7 @@ export const ad = {
     TEXT: '\x1b[0m'
 }
 
-export const keys = {
+const keys = {
     GRU: [
         'updateGateInputMatrix',
         'updateGateHiddenMatrix',
@@ -77,7 +77,7 @@ export function averageArrays(arr1, arr2) {
     return averagedArray
 }
 
-export function mergeGRUNetworks(myNet, urBit) {
+export async function mergeGRUNetworks(myNet, urBit) {
     return {
         type: myNet.type,
         options: {
@@ -141,22 +141,11 @@ export function mergeGRUNetworks(myNet, urBit) {
 }
 
 function mergeHiddenLayers(myNet, urBit) {
-    const keys = [
-        'updateGateInputMatrix',
-        'updateGateHiddenMatrix',
-        'updateGateBias',
-        'resetGateInputMatrix',
-        'resetGateHiddenMatrix',
-        'resetGateBias',
-        'cellWriteInputMatrix',
-        'cellWriteHiddenMatrix',
-        'cellWriteBias'
-    ]
     const hiddenLayers = []
     try {
         for (let i = 0; i < myNet.hiddenLayers.length; i++) {
             const layer = {}
-            for (const key of keys) {
+            for (const key of keys.GRU) {
                 layer[key] = {
                     rows: myNet.hiddenLayers[i][key].rows,
                     columns: myNet.hiddenLayers[i][key].columns,
@@ -212,4 +201,127 @@ export function dataFormatter(allowedChars) {
     obj.indexTable.unrecognized = allowedChars.length
     obj.characterTable[allowedChars.length] = null
     return obj
+}
+
+export async function reconstructNetwork(network) {
+    network.input.weights = convertObjectToArray(network.input.weights).slice(
+        0,
+        network.input.rows * network.input.columns
+    )
+    for (let i = 0; i < network.options.hiddenLayers.length; i++) {
+        for (const key of keys.GRU) {
+            network.hiddenLayers[i][key].weights = convertObjectToArray(
+                network.hiddenLayers[i][key].weights
+            ).slice(
+                0,
+                network.hiddenLayers[i][key].rows *
+                    network.hiddenLayers[i][key].columns
+            )
+        }
+    }
+    network.outputConnector.weights = convertObjectToArray(
+        network.outputConnector.weights
+    ).slice(0, network.outputConnector.rows * network.outputConnector.columns)
+    network.output.weights = convertObjectToArray(network.output.weights).slice(
+        0,
+        network.output.rows * network.output.columns
+    )
+    return network
+}
+
+export function registerGRUNetwork(config) {
+    return {
+        type: 'GRU',
+        options: {
+            inputSize: config.inputCharacters.length + 1,
+            inputRange: config.inputCharacters.length + 1,
+            hiddenLayers: new Array(config.networkDepth).fill(
+                config.networkWidth
+            ),
+            outputSize: config.inputCharacters.length + 1,
+            decayRate: config.decayRate,
+            smoothEps: 1e-8,
+            regc: config.regc,
+            clipval: config.clipval,
+            maxPredictionLength: 333,
+            dataFormatter: dataFormatter(Array.from(config.inputCharacters)),
+            learningRate: config.initialRate,
+            errorThresh: config.errorThresh
+        },
+        trainOpts: {
+            iterations: config.iterations,
+            errorThresh: config.errorThresh,
+            log: false,
+            logPeriod: config.logPeriod,
+            learningRate: config.initialRate,
+            callbackPeriod: config.callbackPeriod,
+            timeout: 'Infinity'
+        },
+        input: {
+            rows: config.inputCharacters.length + 2,
+            columns: config.inputCharacters.length + 1,
+            weights: []
+        },
+        hiddenLayers: [],
+        outputConnector: {
+            rows: config.inputCharacters.length + 2,
+            columns: config.networkWidth,
+            weights: []
+        },
+        output: {
+            rows: config.inputCharacters.length + 2,
+            columns: 1,
+            weights: []
+        }
+    }
+}
+
+export function registerBrain(gun, network, config) {
+    const brain = gun.get('brain')
+
+    brain
+        .get('input')
+        .get('weights')
+        .on(async (node) => {
+            network.input.weights = node
+        })
+
+    for (let i = 0; i < config.networkDepth; i++) {
+        network.hiddenLayers[i] = {}
+        for (const key of keys.GRU) {
+            let columns = config.networkWidth
+            if (key.endsWith('InputMatrix') && i === 0) {
+                columns = config.inputCharacters.length + 1
+            } else if (key.endsWith('Bias')) {
+                columns = 1
+            }
+            network.hiddenLayers[i][key] = {
+                rows: config.networkWidth,
+                columns: columns,
+                weights: {}
+            }
+            brain
+                .get('hiddenLayers')
+                .get(i.toString())
+                .get(key)
+                .get('weights')
+                .on(async (node) => {
+                    network.hiddenLayers[i][key].weights = node
+                })
+        }
+    }
+
+    brain
+        .get('outputConnector')
+        .get('weights')
+        .on(async (node) => {
+            network.outputConnector.weights = node
+        })
+
+    brain
+        .get('output')
+        .get('weights')
+        .on(async (node) => {
+            network.output.weights = node
+        })
 }
