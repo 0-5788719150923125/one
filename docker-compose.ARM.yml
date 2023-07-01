@@ -11,7 +11,7 @@ services:
     environment:
       FOCUS: support
       NETWORK_WIDTH: 256
-      NETWORK_DEPTH: 12
+      NETWORK_DEPTH: 10
       BATCH_SIZE: 6
       TRAINING_SAMPLES: 1024
       LEARNING_RATE: 0.001
