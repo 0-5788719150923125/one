@@ -1,4 +1,4 @@
-export const wall = '¶'
+import { faker } from '@faker-js/faker'
 
 export const bc = {
     FOLD: '\x1b[34m',
@@ -8,6 +8,29 @@ export const bc = {
 
 export const ad = {
     TEXT: '\x1b[0m'
+}
+
+export const keys = {
+    GRU: [
+        'updateGateInputMatrix',
+        'updateGateHiddenMatrix',
+        'updateGateBias',
+        'resetGateInputMatrix',
+        'resetGateHiddenMatrix',
+        'resetGateBias',
+        'cellWriteInputMatrix',
+        'cellWriteHiddenMatrix',
+        'cellWriteBias'
+    ]
+}
+
+export const delay = (ms) => new Promise((res) => setTimeout(res, ms))
+
+export function createTrainingData() {
+    return {
+        input: [faker.hacker.phrase()],
+        output: faker.hacker.phrase()
+    }
 }
 
 export function* elapsedTimeGenerator() {
@@ -30,6 +53,14 @@ export function getRandomIdentity() {
         randomNumber = randomNumber + Math.floor(Math.random() * 10).toString()
     }
     return randomNumber
+}
+
+export function convertObjectToArray(obj) {
+    const arr = []
+    for (let key in obj) {
+        arr[key] = obj[key]
+    }
+    return arr
 }
 
 export function averageArrays(arr1, arr2) {
@@ -65,10 +96,10 @@ export function mergeGRUNetworks(myNet, urBit) {
                 values: myNet.options.dataFormatter.values,
                 characters: myNet.options.dataFormatter.characters,
                 specialIndexes: myNet.options.dataFormatter.specialIndexes
-            }
+            },
+            learningRate: 0.001,
+            errorThresh: 0.000001
         },
-        learningRate: myNet.learningRate,
-        errorThresh: myNet.errorThresh,
         trainOpts: {
             iterations: myNet.trainOpts.iterations,
             errorThresh: myNet.trainOpts.errorThresh,
@@ -145,4 +176,40 @@ function mergeHiddenLayers(myNet, urBit) {
         // pass
     }
     return hiddenLayers
+}
+
+export function convertNetToObject(obj) {
+    if (Array.isArray(obj)) {
+        const newObj = {}
+        obj.forEach((element, index) => {
+            newObj[index] = convertNetToObject(element)
+        })
+        return newObj
+    } else if (typeof obj === 'object' && obj !== null) {
+        const newObj = {}
+        for (let key in obj) {
+            newObj[key] = convertNetToObject(obj[key])
+        }
+        return newObj
+    } else {
+        return obj
+    }
+}
+
+export function dataFormatter(allowedChars) {
+    const obj = {
+        indexTable: {},
+        characterTable: {},
+        values: [...allowedChars],
+        characters: [...allowedChars],
+        specialIndexes: [allowedChars.length]
+    }
+    obj.characters.push('unrecognized')
+    for (let i = 0; i < allowedChars.length; i++) {
+        obj.indexTable[allowedChars[i]] = i
+        obj.characterTable[i] = allowedChars[i]
+    }
+    obj.indexTable.unrecognized = allowedChars.length
+    obj.characterTable[allowedChars.length] = null
+    return obj
 }

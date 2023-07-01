@@ -16,6 +16,7 @@ services:
       LEARNING_RATE: 0.001
       REGC: 0.00001
       CLIPVAL: 23
+      CONTEXT_LENGTH: 3
 
   kv:
     image: redis:7.0.5-alpine

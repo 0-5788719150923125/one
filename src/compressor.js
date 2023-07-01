@@ -3,37 +3,30 @@ import { parentPort } from 'worker_threads'
 import { recurrent, utilities } from 'brain.js'
 import { TrainStream } from 'train-stream'
 import { getRandomData } from './cache.js'
-import { ad, bc, elapsedTimeGenerator, wall } from './utils.js'
+import { ad, bc, delay, elapsedTimeGenerator } from './utils.js'
+import config from './config.js'
 
-const batchSize = Number(process.env.BATCH_SIZE) || 23
-const networkWidth = Number(process.env.NETWORK_WIDTH) || 64
-const networkDepth = Number(process.env.NETWORK_DEPTH) || 2
-const contextLength = Number(process.env.CONTEXT_LENGTH) || 3
-const iterations = 1000000000
-const initialRate = Number(process.env.LEARNING_RATE) || 0.001
-let currentRate = initialRate
-const decayRate = 0.999
-const regc = process.env.REGC || 0.00001
-const clipval = Number(process.env.CLIPVAL) || 5
-const errorThresh = 0.000001
-const logPeriod = 1
-const callbackPeriod = 100
-const allowedCharacters = `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 ,;:.?!()[]"'\`$@#%^&*-=+-{}\\/¶`
+let currentRate = config.initialRate
 
 const net = new recurrent.GRU({
-    hiddenLayers: new Array(networkDepth).fill(networkWidth),
-    learningRate: initialRate,
-    decayRate,
-    clipval,
-    errorThresh,
-    regc,
+    hiddenLayers: new Array(config.networkDepth).fill(config.networkWidth),
+    learningRate: config.initialRate,
+    decayRate: config.decayRate,
+    clipval: config.clipval,
+    errorThresh: config.errorThresh,
+    regc: config.regc,
     maxPredictionLength: 333,
-    dataFormatter: new utilities.DataFormatter(Array.from(allowedCharacters))
+    dataFormatter: new utilities.DataFormatter(
+        Array.from(config.inputCharacters)
+    )
 })
 
+let pause = false
+let ourPi = null
 parentPort.on('message', async (data) => {
+    if (data.ourPi) ourPi = data.ourPi
+    if (data.compressor === 'resume') pause = false
     if (data.compressor !== 'start') return
-
     let schedule = null
     const timer = elapsedTimeGenerator()
 
@@ -55,14 +48,14 @@ parentPort.on('message', async (data) => {
 
     let lastError = 0
 
-    net.updateTrainingOptions({ errorThresh })
+    net.updateTrainingOptions({ errorThresh: config.errorThresh })
     const trainStream = new TrainStream({
         neuralNetwork: net,
-        learningRate: initialRate,
-        errorThresh,
-        logPeriod,
-        iterations,
-        callbackPeriod,
+        learningRate: config.initialRate,
+        errorThresh: config.errorThresh,
+        logPeriod: config.logPeriod,
+        iterations: config.iterations,
+        callbackPeriod: config.callbackPeriod,
         callback: async (details) => {
             const tests = [
                 { sample: false, temperature: 0.0 },
@@ -76,7 +69,7 @@ parentPort.on('message', async (data) => {
                     `generating text at temperature of ${test.temperature.toString()}`
                 )
                 const text = net.run(
-                    `What is your name?${wall}`,
+                    `What is your name?${config.wall}`,
                     test.sample,
                     test.temperature
                 )
@@ -84,6 +77,13 @@ parentPort.on('message', async (data) => {
             }
 
             if (details.iterations === 0) return
+
+            parentPort.postMessage({ myNet: net.toJSON() })
+
+            pause = true
+            while (pause === true) {
+                await delay(10000)
+            }
 
             let i = 0
             let latest = '/one/src/networks/compressor.0.json'
@@ -95,20 +95,30 @@ parentPort.on('message', async (data) => {
             fs.writeFileSync(latest, JSON.stringify(net.toJSON()))
         },
         floodCallback: async () => {
+            while (pause === true) {
+                await delay(1000)
+            }
+
+            if (ourPi) net.fromJSON(ourPi)
+
             let step = schedule?.next()
             if (schedule === null || step.done === true) {
                 schedule = cosineScheduler(
-                    errorThresh,
-                    initialRate,
-                    callbackPeriod * 2
+                    config.errorThresh,
+                    config.initialRate,
+                    config.callbackPeriod * 2
                 )
                 step = schedule.next()
             }
             currentRate = step.value
             net.updateTrainingOptions({
-                learningRate: currentRate
+                learningRate: currentRate,
+                iterations: config.iterations,
+                errorThresh: config.errorThresh,
+                logPeriod: config.logPeriod,
+                callbackPeriod: config.callbackPeriod
             })
-            const batch = await createBatch(batchSize)
+            const batch = await createBatch(config.batchSize)
             readInputs(batch)
         },
         log: async (details) => {
@@ -134,7 +144,7 @@ parentPort.on('message', async (data) => {
         }
     })
 
-    const batch = await createBatch(batchSize)
+    const batch = await createBatch(config.batchSize)
     readInputs(batch)
 
     function readInputs(data) {
@@ -149,11 +159,12 @@ async function createBatch(batchSize) {
     const batch = await getRandomData('samples', batchSize)
     return batch.map((string) => {
         const value = JSON.parse(string)
-        const maxLength = Math.floor(Math.random() * contextLength) + 1
+        const maxLength =
+            Math.floor(Math.random() * config.trainingContextLength) + 1
         while (value.input.length > maxLength) {
             value.input.shift()
         }
-        return `${value.input.join(wall)}${wall}${value.output}`
+        return `${value.input.join(config.wall)}${config.wall}${value.output}`
     })
 }
 

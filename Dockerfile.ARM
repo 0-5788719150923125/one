@@ -24,4 +24,4 @@ USER node
 
 ENV NODE_ENV=production
 
-CMD ["node", "src/server.js"]
+CMD ["node", "src/resistor.js"]
