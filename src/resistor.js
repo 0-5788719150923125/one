@@ -93,13 +93,10 @@ worker.on('message', async (data) => {
         const ourPi = await mergeGRUNetworks(data.myNet, urBit)
         worker.postMessage({ ourPi })
         gun.get('brain').put(convertNetToObject(ourPi))
-        fs.mkdirSync('/one/src/networks', { recursive: true })
-        fs.writeFileSync(
-            '/one/src/networks/myNet.json',
-            JSON.stringify(data.myNet)
-        )
-        fs.writeFileSync('/one/src/networks/urBit.json', JSON.stringify(urBit))
-        fs.writeFileSync('/one/src/networks/ourPi.json', JSON.stringify(ourPi))
+        fs.mkdirSync('/one/data', { recursive: true })
+        fs.writeFileSync('/one/data/myNet.json', JSON.stringify(data.myNet))
+        fs.writeFileSync('/one/data/urBit.json', JSON.stringify(urBit))
+        fs.writeFileSync('/one/data/ourPi.json', JSON.stringify(ourPi))
         worker.postMessage({ compressor: 'resume' })
     }
 })

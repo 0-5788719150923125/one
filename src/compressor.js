@@ -31,13 +31,11 @@ parentPort.on('message', async (data) => {
     const timer = elapsedTimeGenerator()
 
     let i = 0
-    let latest = '/one/src/networks/compressor.0.json'
+    let latest = '/one/data/compressor.0.json'
     while (fs.existsSync(latest)) {
         i = i + 1
-        if (
-            fs.existsSync(`/one/src/networks/compressor.${i.toString()}.json`)
-        ) {
-            latest = `/one/src/networks/compressor.${i.toString()}.json`
+        if (fs.existsSync(`/one/data/compressor.${i.toString()}.json`)) {
+            latest = `/one/data/compressor.${i.toString()}.json`
             continue
         }
         console.log('loading saved compressor state...')
@@ -86,13 +84,24 @@ parentPort.on('message', async (data) => {
             }
 
             let i = 0
-            let latest = '/one/src/networks/compressor.0.json'
-            fs.mkdirSync('/one/src/networks', { recursive: true })
+            let latest = '/one/data/compressor.0.json'
+            fs.mkdirSync('/one/data', { recursive: true })
             while (fs.existsSync(latest)) {
                 i = i + 1
-                latest = `/one/src/networks/compressor.${i.toString()}.json`
+                latest = `/one/data/compressor.${i.toString()}.json`
             }
             fs.writeFileSync(latest, JSON.stringify(net.toJSON()))
+            if (i > 3) {
+                fs.unlinkSync('./one/data/compressor.0.json')
+                let j = 0
+                while (j >= 3) {
+                    fs.renameSync(
+                        `/one/data/compressor.${(j + 1).toString()}.json`,
+                        `/one/data/compressor.${j.toString()}.json`
+                    )
+                    j = j + 1
+                }
+            }
         },
         floodCallback: async () => {
             while (pause === true) {
