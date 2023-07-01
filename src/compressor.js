@@ -92,7 +92,7 @@ parentPort.on('message', async (data) => {
             }
             fs.writeFileSync(latest, JSON.stringify(net.toJSON()))
             if (i > 3) {
-                fs.unlinkSync('./one/data/compressor.0.json')
+                fs.unlinkSync('/one/data/compressor.0.json')
                 let j = 0
                 while (j < 3) {
                     fs.renameSync(
