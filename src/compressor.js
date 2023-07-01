@@ -94,7 +94,7 @@ parentPort.on('message', async (data) => {
             if (i > 3) {
                 fs.unlinkSync('./one/data/compressor.0.json')
                 let j = 0
-                while (j >= 3) {
+                while (j < 3) {
                     fs.renameSync(
                         `/one/data/compressor.${(j + 1).toString()}.json`,
                         `/one/data/compressor.${j.toString()}.json`
