@@ -91,16 +91,21 @@ parentPort.on('message', async (data) => {
                 latest = `/one/data/compressor.${i.toString()}.json`
             }
             fs.writeFileSync(latest, JSON.stringify(net.toJSON()))
-            if (i > 3) {
+            if (i >= 3) {
+                console.log('truncating nets')
                 fs.unlinkSync('/one/data/compressor.0.json')
-                let j = 0
-                while (j < 3) {
-                    fs.renameSync(
-                        `/one/data/compressor.${(j + 1).toString()}.json`,
-                        `/one/data/compressor.${j.toString()}.json`
-                    )
-                    j = j + 1
-                }
+                fs.renameSync(
+                    `/one/data/compressor.1.json`,
+                    `/one/data/compressor.0.json`
+                )
+                fs.renameSync(
+                    `/one/data/compressor.2.json`,
+                    `/one/data/compressor.1.json`
+                )
+                fs.renameSync(
+                    `/one/data/compressor.3.json`,
+                    `/one/data/compressor.2.json`
+                )
             }
         },
         floodCallback: async () => {
