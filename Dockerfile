@@ -24,4 +24,4 @@ USER node
 
 ENV NODE_ENV=production
 
-CMD ["node", "src/resistor.js"]
+CMD ["node", "--max-old-space-size=4096", "src/resistor.js"]

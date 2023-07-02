@@ -66,8 +66,7 @@ gun.get('neurons')
                 input: context,
                 output: message
             }
-            console.log(`input: ${context[context.length - 1]}`)
-            console.log(`output: ${message}`)
+            console.log(`input: ${message}`)
             context.push(message)
             if (context.length <= 1) return
             while (context.length > config.localContextLength) {
