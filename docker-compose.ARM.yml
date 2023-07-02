@@ -8,10 +8,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.ARM
+    volumes:
+      - ./data:/one/data
     environment:
       FOCUS: support
       NETWORK_WIDTH: 256
-      NETWORK_DEPTH: 9
+      NETWORK_DEPTH: 12
       BATCH_SIZE: 6
       TRAINING_SAMPLES: 1024
       LEARNING_RATE: 0.001
