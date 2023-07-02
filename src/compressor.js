@@ -110,6 +110,7 @@ parentPort.on('message', async (data) => {
         },
         floodCallback: async () => {
             while (pause === true) {
+                console.log('awaiting permission to continue')
                 await delay(1000)
             }
 

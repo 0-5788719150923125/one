@@ -282,20 +282,21 @@ export function registerBrain(gun, network, config) {
     brain
         .get('input')
         .get('weights')
-        .on(async (node) => {
-            network.input.weights = node
+        .map()
+        .on(async (value, key) => {
+            network.input.weights[key] = value
         })
 
     for (let i = 0; i < config.networkDepth; i++) {
         network.hiddenLayers[i] = {}
-        for (const key of keys.GRU) {
+        for (const ki of keys.GRU) {
             let columns = config.networkWidth
-            if (key.endsWith('InputMatrix') && i === 0) {
+            if (ki.endsWith('InputMatrix') && i === 0) {
                 columns = config.inputCharacters.length + 1
-            } else if (key.endsWith('Bias')) {
+            } else if (ki.endsWith('Bias')) {
                 columns = 1
             }
-            network.hiddenLayers[i][key] = {
+            network.hiddenLayers[i][ki] = {
                 rows: config.networkWidth,
                 columns: columns,
                 weights: {}
@@ -303,10 +304,11 @@ export function registerBrain(gun, network, config) {
             brain
                 .get('hiddenLayers')
                 .get(i.toString())
-                .get(key)
+                .get(ki)
                 .get('weights')
-                .on(async (node) => {
-                    network.hiddenLayers[i][key].weights = node
+                .map()
+                .on(async (value, key) => {
+                    network.hiddenLayers[i][ki].weights[key] = value
                 })
         }
     }
@@ -314,14 +316,16 @@ export function registerBrain(gun, network, config) {
     brain
         .get('outputConnector')
         .get('weights')
-        .on(async (node) => {
-            network.outputConnector.weights = node
+        .map()
+        .on(async (value, key) => {
+            network.outputConnector.weights[key] = value
         })
 
     brain
         .get('output')
         .get('weights')
-        .on(async (node) => {
-            network.output.weights = node
+        .map()
+        .on(async (value, key) => {
+            network.output.weights[key] = value
         })
 }
