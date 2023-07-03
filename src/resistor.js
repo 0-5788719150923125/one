@@ -87,6 +87,9 @@ const worker = new Worker('./src/compressor.js')
 worker.postMessage({ compressor: 'start' })
 
 worker.on('message', async (data) => {
+    if (data.compressor === 'failed') {
+        worker.postMessage({ compressor: 'start' })
+    }
     if (data.myNet) {
         const urBit = await reconstructNetwork(livingNetwork)
         const ourPi = await mergeGRUNetworks(data.myNet, urBit)

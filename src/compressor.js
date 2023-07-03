@@ -92,7 +92,6 @@ parentPort.on('message', async (data) => {
             }
             fs.writeFileSync(latest, JSON.stringify(net.toJSON()))
             if (i >= 3) {
-                console.log('truncating nets')
                 fs.unlinkSync('/one/data/compressor.0.json')
                 fs.renameSync(
                     `/one/data/compressor.1.json`,
@@ -151,6 +150,9 @@ parentPort.on('message', async (data) => {
                     timer.next().value / 1000
                 ).toString()}/s, "error": ${color + details.error + ad.TEXT}}`
             )
+            if (isNaN(details.error)) {
+                parentPort.postMessage({ compressor: 'failed' })
+            }
         },
         doneTrainingCallback: async function (stats) {
             console.log(
