@@ -91,14 +91,19 @@ worker.on('message', async (data) => {
         worker.postMessage({ compressor: 'start' })
     }
     if (data.myNet) {
-        const urBit = await reconstructNetwork(livingNetwork)
-        const ourPi = await mergeGRUNetworks(data.myNet, urBit)
-        worker.postMessage({ ourPi })
-        gun.get('brain').put(convertNetToObject(ourPi))
-        fs.mkdirSync('/one/data', { recursive: true })
-        fs.writeFileSync('/one/data/myNet.json', JSON.stringify(data.myNet))
-        fs.writeFileSync('/one/data/urBit.json', JSON.stringify(urBit))
-        fs.writeFileSync('/one/data/ourPi.json', JSON.stringify(ourPi))
+        try {
+            const urBit = await reconstructNetwork(livingNetwork)
+            const ourPi = await mergeGRUNetworks(data.myNet, urBit)
+            worker.postMessage({ ourPi })
+            gun.get('brain').put(convertNetToObject(ourPi))
+            fs.mkdirSync('/one/data', { recursive: true })
+            fs.writeFileSync('/one/data/myNet.json', JSON.stringify(data.myNet))
+            fs.writeFileSync('/one/data/urBit.json', JSON.stringify(urBit))
+            fs.writeFileSync('/one/data/ourPi.json', JSON.stringify(ourPi))
+        } catch (err) {
+            console.error(err)
+            worker.postMessage({ ourPi: data.myNet })
+        }
         worker.postMessage({ compressor: 'resume' })
     }
 })

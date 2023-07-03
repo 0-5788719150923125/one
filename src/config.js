@@ -15,7 +15,7 @@ const config = {
     logPeriod: 1,
     callbackPeriod: 100,
     wall: '¶',
-    inputCharacters: `0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ,;:.?!()[]"'\`$@#%^&*-=+-{}\\/¶`
+    inputCharacters: `0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ,;:.?!()[]"'\`$@#%^&*=+-{}\\/¶`
 }
 
 export default config

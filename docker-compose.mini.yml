@@ -18,8 +18,8 @@ services:
       - ./data:/one/data
     environment:
       FOCUS: trade
-      NETWORK_WIDTH: 144
-      NETWORK_DEPTH: 6
+      NETWORK_WIDTH: 96
+      NETWORK_DEPTH: 3
       BATCH_SIZE: 6
       TRAINING_SAMPLES: 1024
       LEARNING_RATE: 0.001
