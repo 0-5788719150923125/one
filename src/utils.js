@@ -229,7 +229,7 @@ export async function reconstructNetwork(network) {
     return network
 }
 
-export function registerGRUNetwork(config) {
+export function instantiateGRUNetwork(config) {
     return {
         type: 'GRU',
         options: {

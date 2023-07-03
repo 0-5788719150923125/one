@@ -7,6 +7,7 @@ import 'gun/lib/radisk.js'
 import 'gun/lib/store.js'
 import 'gun/lib/rindexed.js'
 import 'gun/lib/webrtc.js'
+import 'gun/lib/yson.js'
 import { addData, getDataLength } from './cache.js'
 import {
     ad,
@@ -16,7 +17,7 @@ import {
     mergeGRUNetworks,
     reconstructNetwork,
     registerBrain,
-    registerGRUNetwork
+    instantiateGRUNetwork
 } from './utils.js'
 import config from './config.js'
 
@@ -78,7 +79,7 @@ gun.get('neurons')
         }
     })
 
-const livingNetwork = registerGRUNetwork(config)
+const livingNetwork = instantiateGRUNetwork(config)
 
 registerBrain(gun, livingNetwork, config)
 

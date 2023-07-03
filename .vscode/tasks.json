@@ -50,6 +50,12 @@
       "command": "docker compose push"
     },
     {
+      "label": "docker compose pull",
+      "detail": "Pull the Docker images from a registry.",
+      "type": "shell",
+      "command": "docker compose pull"
+    },
+    {
       "label": "docker compose up (dev)",
       "detail": "Start the service in Docker.",
       "type": "shell",
