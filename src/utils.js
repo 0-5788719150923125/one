@@ -10,7 +10,7 @@ export const ad = {
     TEXT: '\x1b[0m'
 }
 
-const keys = {
+export const keys = {
     GRU: [
         'updateGateInputMatrix',
         'updateGateHiddenMatrix',
@@ -277,15 +277,22 @@ export function instantiateGRUNetwork(config) {
 }
 
 export function registerBrain(gun, network, config) {
-    const brain = gun.get('brain')
+    const brain = gun.get('vectors')
 
     brain
         .get('input')
         .get('weights')
         .map()
-        .on(async (value, key) => {
-            network.input.weights[key] = value
-        })
+        .map()
+        .on(
+            (value, key) => {
+                if (key === '0') {
+                    console.log(value)
+                }
+                network.input.weights[key] = value
+            },
+            { change: true }
+        )
 
     for (let i = 0; i < config.networkDepth; i++) {
         network.hiddenLayers[i] = {}
@@ -307,9 +314,16 @@ export function registerBrain(gun, network, config) {
                 .get(ki)
                 .get('weights')
                 .map()
-                .on(async (value, key) => {
-                    network.hiddenLayers[i][ki].weights[key] = value
-                })
+                .map()
+                .on(
+                    (value, key) => {
+                        if (key === '0') {
+                            console.log(value)
+                        }
+                        network.hiddenLayers[i][ki].weights[key] = value
+                    },
+                    { change: true }
+                )
         }
     }
 
@@ -317,15 +331,29 @@ export function registerBrain(gun, network, config) {
         .get('outputConnector')
         .get('weights')
         .map()
-        .on(async (value, key) => {
-            network.outputConnector.weights[key] = value
-        })
+        .map()
+        .on(
+            (value, key) => {
+                if (key === '0') {
+                    console.log(value)
+                }
+                network.outputConnector.weights[key] = value
+            },
+            { change: true }
+        )
 
     brain
         .get('output')
         .get('weights')
         .map()
-        .on(async (value, key) => {
-            network.output.weights[key] = value
-        })
+        .map()
+        .on(
+            (value, key) => {
+                if (key === '0') {
+                    console.log(value)
+                }
+                network.output.weights[key] = value
+            },
+            { change: true }
+        )
 }

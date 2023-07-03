@@ -11,8 +11,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '4.0'
-          memory: 5000M
+          cpus: ${CPUS:-4.0}
+          memory: ${MEMORY:-5000}M
     network_mode: 'host'
     volumes:
       - ./src:/one/src

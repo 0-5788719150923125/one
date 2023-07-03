@@ -14,6 +14,7 @@ import {
     bc,
     convertNetToObject,
     createTrainingData,
+    keys,
     mergeGRUNetworks,
     reconstructNetwork,
     registerBrain,
@@ -39,7 +40,7 @@ if (totalSamples < config.trainingSamples) {
 const gun = Gun({
     peers: ['https://59.src.eco/gun'],
     localStorage: false,
-    radisk: false,
+    radisk: true,
     axe: false
 })
 
@@ -79,9 +80,9 @@ gun.get('neurons')
         }
     })
 
-const livingNetwork = instantiateGRUNetwork(config)
+const network = instantiateGRUNetwork(config)
 
-registerBrain(gun, livingNetwork, config)
+registerBrain(gun, network, config)
 
 const worker = new Worker('./src/compressor.js')
 
@@ -93,14 +94,59 @@ worker.on('message', async (data) => {
     }
     if (data.myNet) {
         try {
-            const urBit = await reconstructNetwork(livingNetwork)
+            const urBit = await reconstructNetwork(network)
             const ourPi = await mergeGRUNetworks(data.myNet, urBit)
             worker.postMessage({ ourPi })
-            gun.get('brain').put(convertNetToObject(ourPi))
-            fs.mkdirSync('/one/data', { recursive: true })
-            fs.writeFileSync('/one/data/myNet.json', JSON.stringify(data.myNet))
-            fs.writeFileSync('/one/data/urBit.json', JSON.stringify(urBit))
-            fs.writeFileSync('/one/data/ourPi.json', JSON.stringify(ourPi))
+            const objectified = convertNetToObject(ourPi)
+            // const net = gun.get('vector').put(objectified.input.weights)
+            // console.log(objectified.input.weights)
+            // gun.get('things').put(null)
+            gun.get('vectors')
+                .get('input')
+                .get('weights')
+                .set(objectified.input.weights)
+            gun.get('vectors')
+                .get('output')
+                .get('weights')
+                .set(objectified.output.weights)
+            gun.get('vectors')
+                .get('outputConnector')
+                .get('weights')
+                .set(objectified.outputConnector.weights)
+            for (let i = 0; i < config.networkDepth; i++) {
+                network.hiddenLayers[i] = {}
+                for (const ki of keys.GRU) {
+                    let columns = config.networkWidth
+                    if (ki.endsWith('InputMatrix') && i === 0) {
+                        columns = config.inputCharacters.length + 1
+                    } else if (ki.endsWith('Bias')) {
+                        columns = 1
+                    }
+                    network.hiddenLayers[i][ki] = {
+                        rows: config.networkWidth,
+                        columns: columns,
+                        weights: {}
+                    }
+                    gun.get('vectors')
+                        .get('hiddenLayers')
+                        .get(i.toString())
+                        .get(ki)
+                        .get('weights')
+                        .set(objectified.hiddenLayers[i][ki].weights)
+                }
+            }
+            // gun.get('state1')
+            //     .get('input')
+            //     .get('weights')
+            //     .put(objectified.input.weights)
+            // fs.mkdirSync('/one/data', { recursive: true })
+            // fs.writeFileSync(
+            //     '/one/data/object.json',
+            //     JSON.stringify(convertNetToObject(ourPi))
+            // )
+            // fs.writeFileSync('/one/data/myNet.json', JSON.stringify(data.myNet))
+            // fs.writeFileSync('/one/data/urBit.json', JSON.stringify(urBit))
+            // fs.writeFileSync('/one/data/ourPi.json', JSON.stringify(ourPi))
         } catch (err) {
             console.error(err)
             worker.postMessage({ ourPi: data.myNet })
