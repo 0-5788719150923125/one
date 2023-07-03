@@ -12,7 +12,7 @@ services:
       - ./data:/one/data
     environment:
       FOCUS: support
-      NETWORK_WIDTH: 256
+      NETWORK_WIDTH: 192
       NETWORK_DEPTH: 12
       BATCH_SIZE: 6
       TRAINING_SAMPLES: 1024
