@@ -26,6 +26,12 @@ export const keys = {
 
 export const delay = (ms) => new Promise((res) => setTimeout(res, ms))
 
+export const randomItemFromArray = (array) => {
+    const key = Math.floor(Math.random() * array.length)
+    const value = array[key]
+    return { key, value }
+}
+
 export function createTrainingData() {
     return {
         input: [faker.hacker.phrase()],
@@ -282,8 +288,8 @@ export function registerBrain(gun, network, config) {
     db.get('input')
         .get('weights')
         .on(async (data) => {
-            // console.log([data.i, data.v])
-            network.outputConnector.weights[data.i] = data.v
+            console.log([data._['#'], data.i, data.v])
+            network.input.weights[data.i] = data.v
         })
 
     const layers = db.get('hiddenLayers')
@@ -305,23 +311,23 @@ export function registerBrain(gun, network, config) {
             }
 
             key.get('weights').on(async (data) => {
-                console.log([data.i, data.v])
+                console.log([data._['#'], data.i, data.v])
                 network.hiddenLayers[i][j].weights[data.i] = data.v
             })
         }
     }
 
-    db.get('outputConnector')
-        .get('weights')
-        .on(async (data) => {
-            // console.log([data.i, data.v])
-            network.outputConnector.weights[data.i] = data.v
-        })
-
     db.get('output')
         .get('weights')
         .on(async (data) => {
-            // console.log([data.i, data.v])
+            console.log([data._['#'], data.i, data.v])
             network.output.weights[data.i] = data.v
+        })
+
+    db.get('outputConnector')
+        .get('weights')
+        .on(async (data) => {
+            console.log([data._['#'], data.i, data.v])
+            network.outputConnector.weights[data.i] = data.v
         })
 }

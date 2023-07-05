@@ -19,7 +19,8 @@ import {
     accumulateGradients,
     reconstructNetwork,
     registerBrain,
-    instantiateGRUNetwork
+    instantiateGRUNetwork,
+    randomItemFromArray
 } from './utils.js'
 import config from './config.js'
 
@@ -81,74 +82,98 @@ gun.get('neurons')
         }
     })
 
+const db = gun.get('vector')
 const network = instantiateGRUNetwork(config)
 
 registerBrain(gun, network, config)
 
+let ourPi = { ...network }
+resistor(db.get('input').get('weights'), ourPi.input.weights, 33.3)
+resistor(db.get('output').get('weights'), ourPi.output.weights, 33.3)
+resistor(
+    db.get('outputConnector').get('weights'),
+    ourPi.outputConnector.weights,
+    33.3
+)
+for (let i = 0; i < config.networkDepth; i++) {
+    const layer = db.get('hiddenLayers').get(i)
+    if (!network.hiddenLayers[i]) network.hiddenLayers[i] = {}
+    for (const j of keys.GRU) {
+        const weights = layer.get(j).get('weights')
+        let columns = config.networkWidth
+        if (j.endsWith('InputMatrix') && i === 0) {
+            columns = config.inputCharacters.length + 1
+        } else if (j.endsWith('Bias')) {
+            columns = 1
+        }
+        if (!network.hiddenLayers[i][j]) {
+            network.hiddenLayers[i][j] = {
+                rows: config.networkWidth,
+                columns: columns,
+                weights: {}
+            }
+        }
+        resistor(weights, ourPi.hiddenLayers[i][j].weights, 11.1)
+    }
+}
+
 const worker = new Worker('./src/compressor.js')
 
 worker.postMessage({ compressor: 'start' })
-
-const db = gun.get('vector')
 worker.on('message', async (data) => {
-    if (data.compressor === 'failed') {
-        worker.postMessage({ compressor: 'start' })
+    if (data.compressor === 'failed' || !data.myNet) {
+        return worker.postMessage({ compressor: 'start' })
     }
-    if (data.myNet) {
-        try {
-            const urBit = await reconstructNetwork(network)
-            const ourPi = await accumulateGradients(data.myNet, urBit)
-            worker.postMessage({ ourPi })
-            const inputs = db.get('input').get('weights')
-            for (let i = 0; i < ourPi.input.weights.length; i++) {
-                if (Math.random() > 0.001) continue
-                inputs.put({ i: i, v: ourPi.input.weights[i] })
-            }
-            const outputs = db.get('output').get('weights')
-            for (let i = 0; i < ourPi.output.weights.length; i++) {
-                if (Math.random() > 0.001) continue
-                outputs.put({ i: i, v: ourPi.output.weights[i] })
-            }
-            const connectors = db.get('outputConnector').get('weights')
-            for (let i = 0; i < ourPi.outputConnector.weights.length; i++) {
-                if (Math.random() > 0.001) continue
-                connectors.put({ i: i, v: ourPi.outputConnector.weights[i] })
-            }
-            for (let i = 0; i < config.networkDepth; i++) {
-                const layer = db.get('hiddenLayers').get(i)
-                if (!network.hiddenLayers[i]) network.hiddenLayers[i] = {}
-                for (const j of keys.GRU) {
-                    const weights = layer.get(j).get('weights')
-                    let columns = config.networkWidth
-                    if (j.endsWith('InputMatrix') && i === 0) {
-                        columns = config.inputCharacters.length + 1
-                    } else if (j.endsWith('Bias')) {
-                        columns = 1
-                    }
-                    if (!network.hiddenLayers[i][j]) {
-                        network.hiddenLayers[i][j] = {
-                            rows: config.networkWidth,
-                            columns: columns,
-                            weights: {}
-                        }
-                    }
-                    for (
-                        let k = 0;
-                        k < ourPi.hiddenLayers[i][j].weights.length;
-                        k++
-                    ) {
-                        if (Math.random() > 0.001) continue
-                        weights.put({
-                            i: k,
-                            v: ourPi.hiddenLayers[i][j].weights[k]
-                        })
-                    }
-                }
-            }
-        } catch (err) {
-            console.error(err)
-            worker.postMessage({ ourPi: data.myNet })
-        }
-        worker.postMessage({ compressor: 'resume' })
+    try {
+        const urBit = await reconstructNetwork(network)
+        ourPi = await accumulateGradients(data.myNet, urBit)
+        worker.postMessage({ ourPi })
+        // for (let i = 0; i < config.networkDepth; i++) {
+        //     const layer = db.get('hiddenLayers').get(i)
+        //     if (!network.hiddenLayers[i]) network.hiddenLayers[i] = {}
+        //     for (const j of keys.GRU) {
+        //         const weights = layer.get(j).get('weights')
+        //         let columns = config.networkWidth
+        //         if (j.endsWith('InputMatrix') && i === 0) {
+        //             columns = config.inputCharacters.length + 1
+        //         } else if (j.endsWith('Bias')) {
+        //             columns = 1
+        //         }
+        //         if (!network.hiddenLayers[i][j]) {
+        //             network.hiddenLayers[i][j] = {
+        //                 rows: config.networkWidth,
+        //                 columns: columns,
+        //                 weights: {}
+        //             }
+        //         }
+        //         for (
+        //             let k = 0;
+        //             k < ourPi.hiddenLayers[i][j].weights.length;
+        //             k++
+        //         ) {
+        //             if (Math.random() > 0.0001) continue
+        //             weights.put({
+        //                 i: k,
+        //                 v: ourPi.hiddenLayers[i][j].weights[k]
+        //             })
+        //         }
+        //     }
+        // }
+    } catch (err) {
+        console.error(err)
+        worker.postMessage({ ourPi: data.myNet })
     }
+    worker.postMessage({ compressor: 'resume' })
 })
+
+async function resistor(gun, neurons, frequency) {
+    while (neurons.length > 0) {
+        const neuron = randomItemFromArray(neurons)
+        await delay(60000 / frequency)
+        if (typeof neuron.value !== 'undefined') {
+            gun.put({ i: neuron.key, v: neuron.value })
+        }
+    }
+    await delay(5000)
+    await resistor(gun, neurons, frequency)
+}

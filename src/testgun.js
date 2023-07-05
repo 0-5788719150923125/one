@@ -17,23 +17,19 @@ const gun = Gun({
 
 function fire() {
     const num = Math.floor(Math.random() * 100)
-    gun.get('vector')
-        .get('hiddenLayers')
-        .get(0)
-        .get('cellWriteInputMatrix')
-        .get('weights')
-        .put({
-            i: num,
-            v: Math.random()
-        })
+    gun.get('vector').get('input').get('weights').put({
+        i: num,
+        v: Math.random()
+    })
     console.log(num)
-    setTimeout(fire, 60000)
+    setTimeout(fire, 5000)
 }
 
 fire()
 
-// gun.get('test')
-//     .map()
-//     .on((data) => {
-//         console.log(data)
-//     })
+gun.get('vector')
+    .get('input')
+    .get('weights')
+    .on((data) => {
+        console.log(data)
+    })
