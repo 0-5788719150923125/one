@@ -268,7 +268,7 @@ export function registerListeners(db, network, config) {
     db.get('input')
         .get('weights')
         .on(async (data) => {
-            console.log([data._['#'], data.i, data.v])
+            // console.log([data._['#'], data.i, data.v])
             network.input.weights[data.i] = data.v
         })
 
@@ -300,14 +300,14 @@ export function registerListeners(db, network, config) {
     db.get('output')
         .get('weights')
         .on(async (data) => {
-            console.log([data._['#'], data.i, data.v])
+            // console.log([data._['#'], data.i, data.v])
             network.output.weights[data.i] = data.v
         })
 
     db.get('outputConnector')
         .get('weights')
         .on(async (data) => {
-            console.log([data._['#'], data.i, data.v])
+            // console.log([data._['#'], data.i, data.v])
             network.outputConnector.weights[data.i] = data.v
         })
 }
