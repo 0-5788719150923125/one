@@ -264,17 +264,17 @@ export function instantiateGRUNetwork(config) {
     }
 }
 
-export function registerBrain(gun, network, config) {
-    gun.get('input')
+export function registerListeners(db, network, config) {
+    db.get('input')
         .get('weights')
         .on(async (data) => {
             console.log([data._['#'], data.i, data.v])
             network.input.weights[data.i] = data.v
         })
 
-    const layers = gun.get('hiddenLayers')
+    const layers = db.get('hiddenLayers')
     for (let i = 0; i < config.networkDepth; i++) {
-        const layer = gun.get(i)
+        const layer = layers.get(i)
         network.hiddenLayers[i] = {}
         for (const j of keys.GRU) {
             const key = layer.get(j)
@@ -291,20 +291,20 @@ export function registerBrain(gun, network, config) {
             }
 
             key.get('weights').on(async (data) => {
-                console.log([data._['#'], data.i, data.v])
+                // console.log([data._['#'], data.i, data.v])
                 network.hiddenLayers[i][j].weights[data.i] = data.v
             })
         }
     }
 
-    gun.get('output')
+    db.get('output')
         .get('weights')
         .on(async (data) => {
             console.log([data._['#'], data.i, data.v])
             network.output.weights[data.i] = data.v
         })
 
-    gun.get('outputConnector')
+    db.get('outputConnector')
         .get('weights')
         .on(async (data) => {
             console.log([data._['#'], data.i, data.v])
