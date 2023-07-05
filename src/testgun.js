@@ -11,48 +11,29 @@ import 'gun/lib/open.js'
 const gun = Gun({
     peers: ['https://59.src.eco/gun'],
     localStorage: false,
-    radisk: false,
+    radisk: true,
     axe: false
 })
 
-gun.get('vectors')
-    .get('input')
-    .get('weights')
-    .map()
-    .map()
-    .on(
-        (value, key) => {
-            if (key === '0') {
-                console.log(value)
-            }
-        },
-        { change: true }
-    )
+function fire() {
+    const num = Math.floor(Math.random() * 100)
+    gun.get('vector')
+        .get('hiddenLayers')
+        .get(0)
+        .get('cellWriteInputMatrix')
+        .get('weights')
+        .put({
+            i: num,
+            v: Math.random()
+        })
+    console.log(num)
+    setTimeout(fire, 60000)
+}
 
-gun.get('vectors')
-    .get('output')
-    .get('weights')
-    .map()
-    .map()
-    .on(
-        (value, key) => {
-            if (key === '0') {
-                console.log(value)
-            }
-        },
-        { change: true }
-    )
+fire()
 
-gun.get('vectors')
-    .get('outputConnector')
-    .get('weights')
-    .map()
-    .map()
-    .on(
-        (value, key) => {
-            if (key === '0') {
-                console.log(value)
-            }
-        },
-        { change: true }
-    )
+// gun.get('test')
+//     .map()
+//     .on((data) => {
+//         console.log(data)
+//     })

@@ -77,7 +77,7 @@ export function averageArrays(arr1, arr2) {
     return averagedArray
 }
 
-export async function mergeGRUNetworks(myNet, urBit) {
+export async function accumulateGradients(myNet, urBit) {
     return {
         type: myNet.type,
         options: {
@@ -277,83 +277,51 @@ export function instantiateGRUNetwork(config) {
 }
 
 export function registerBrain(gun, network, config) {
-    const brain = gun.get('vectors')
+    const db = gun.get('vector')
 
-    brain
-        .get('input')
+    db.get('input')
         .get('weights')
-        .map()
-        .map()
-        .on(
-            (value, key) => {
-                if (key === '0') {
-                    console.log(value)
-                }
-                network.input.weights[key] = value
-            },
-            { change: true }
-        )
+        .on(async (data) => {
+            // console.log([data.i, data.v])
+            network.outputConnector.weights[data.i] = data.v
+        })
 
+    const layers = db.get('hiddenLayers')
     for (let i = 0; i < config.networkDepth; i++) {
+        const layer = db.get(i)
         network.hiddenLayers[i] = {}
-        for (const ki of keys.GRU) {
+        for (const j of keys.GRU) {
+            const key = layer.get(j)
             let columns = config.networkWidth
-            if (ki.endsWith('InputMatrix') && i === 0) {
+            if (j.endsWith('InputMatrix') && i === 0) {
                 columns = config.inputCharacters.length + 1
-            } else if (ki.endsWith('Bias')) {
+            } else if (j.endsWith('Bias')) {
                 columns = 1
             }
-            network.hiddenLayers[i][ki] = {
+            network.hiddenLayers[i][j] = {
                 rows: config.networkWidth,
                 columns: columns,
                 weights: {}
             }
-            brain
-                .get('hiddenLayers')
-                .get(i.toString())
-                .get(ki)
-                .get('weights')
-                .map()
-                .map()
-                .on(
-                    (value, key) => {
-                        if (key === '0') {
-                            console.log(value)
-                        }
-                        network.hiddenLayers[i][ki].weights[key] = value
-                    },
-                    { change: true }
-                )
+
+            key.get('weights').on(async (data) => {
+                console.log([data.i, data.v])
+                network.hiddenLayers[i][j].weights[data.i] = data.v
+            })
         }
     }
 
-    brain
-        .get('outputConnector')
+    db.get('outputConnector')
         .get('weights')
-        .map()
-        .map()
-        .on(
-            (value, key) => {
-                if (key === '0') {
-                    console.log(value)
-                }
-                network.outputConnector.weights[key] = value
-            },
-            { change: true }
-        )
+        .on(async (data) => {
+            // console.log([data.i, data.v])
+            network.outputConnector.weights[data.i] = data.v
+        })
 
-    brain
-        .get('output')
+    db.get('output')
         .get('weights')
-        .map()
-        .map()
-        .on(
-            (value, key) => {
-                if (key === '0') {
-                    console.log(value)
-                }
-                network.output.weights[key] = value
-            },
-            { change: true }
-        )
+        .on(async (data) => {
+            // console.log([data.i, data.v])
+            network.output.weights[data.i] = data.v
+        })
 }

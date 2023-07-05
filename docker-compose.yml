@@ -3,7 +3,7 @@ version: '3.9'
 services:
   brain:
     image: ghcr.io/0-5788719150923125/one:latest
-    command: node --max-old-space-size=${HEAP_SIZE:-1024} src/resistor.js
+    command: node --max-old-space-size=${MEMORY:-1024} src/resistor.js
     restart: unless-stopped
     user: 1000:1000
     build:
@@ -13,7 +13,6 @@ services:
       resources:
         limits:
           cpus: ${CPUS:-4.0}
-          memory: ${MEMORY:-10000}M
     network_mode: 'host'
     volumes:
       - ./src:/one/src
