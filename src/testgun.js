@@ -10,7 +10,7 @@ import 'gun/lib/open.js'
 
 const gun = Gun({
     peers: ['https://59.src.eco/gun'],
-    localStorage: false,
+    localStorage: true,
     radisk: true,
     axe: false
 })

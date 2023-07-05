@@ -12,13 +12,12 @@ import { addData, getDataLength } from './cache.js'
 import {
     ad,
     bc,
-    convertNetToObject,
     createTrainingData,
     delay,
     keys,
     accumulateGradients,
     reconstructNetwork,
-    registerBrain,
+    registerBrain as registerListeners,
     instantiateGRUNetwork,
     randomItemFromArray
 } from './utils.js'
@@ -41,6 +40,7 @@ if (totalSamples < config.trainingSamples) {
 
 const gun = Gun({
     peers: ['https://59.src.eco/gun'],
+    file: './data/gun',
     localStorage: false,
     radisk: true,
     axe: false
@@ -82,22 +82,19 @@ gun.get('neurons')
         }
     })
 
+let network = instantiateGRUNetwork(config)
+let ourPi = network
+
 const db = gun.get('vector')
-const network = instantiateGRUNetwork(config)
+registerListeners(db, network, config)
 
-registerBrain(gun, network, config)
+inputResistor(db, 33.3)
+outputResistor(db, 33.3)
+outputConnectorResistor(db, 33.3)
 
-let ourPi = { ...network }
-resistor(db.get('input').get('weights'), ourPi.input.weights, 33.3)
-resistor(db.get('output').get('weights'), ourPi.output.weights, 33.3)
-resistor(
-    db.get('outputConnector').get('weights'),
-    ourPi.outputConnector.weights,
-    33.3
-)
 for (let i = 0; i < config.networkDepth; i++) {
     const layer = db.get('hiddenLayers').get(i)
-    if (!network.hiddenLayers[i]) network.hiddenLayers[i] = {}
+    network.hiddenLayers[i] = {}
     for (const j of keys.GRU) {
         const weights = layer.get(j).get('weights')
         let columns = config.networkWidth
@@ -113,7 +110,7 @@ for (let i = 0; i < config.networkDepth; i++) {
                 weights: {}
             }
         }
-        resistor(weights, ourPi.hiddenLayers[i][j].weights, 11.1)
+        hiddenLayerResistor(weights, 11.1, i, j)
     }
 }
 
@@ -128,37 +125,6 @@ worker.on('message', async (data) => {
         const urBit = await reconstructNetwork(network)
         ourPi = await accumulateGradients(data.myNet, urBit)
         worker.postMessage({ ourPi })
-        // for (let i = 0; i < config.networkDepth; i++) {
-        //     const layer = db.get('hiddenLayers').get(i)
-        //     if (!network.hiddenLayers[i]) network.hiddenLayers[i] = {}
-        //     for (const j of keys.GRU) {
-        //         const weights = layer.get(j).get('weights')
-        //         let columns = config.networkWidth
-        //         if (j.endsWith('InputMatrix') && i === 0) {
-        //             columns = config.inputCharacters.length + 1
-        //         } else if (j.endsWith('Bias')) {
-        //             columns = 1
-        //         }
-        //         if (!network.hiddenLayers[i][j]) {
-        //             network.hiddenLayers[i][j] = {
-        //                 rows: config.networkWidth,
-        //                 columns: columns,
-        //                 weights: {}
-        //             }
-        //         }
-        //         for (
-        //             let k = 0;
-        //             k < ourPi.hiddenLayers[i][j].weights.length;
-        //             k++
-        //         ) {
-        //             if (Math.random() > 0.0001) continue
-        //             weights.put({
-        //                 i: k,
-        //                 v: ourPi.hiddenLayers[i][j].weights[k]
-        //             })
-        //         }
-        //     }
-        // }
     } catch (err) {
         console.error(err)
         worker.postMessage({ ourPi: data.myNet })
@@ -166,14 +132,50 @@ worker.on('message', async (data) => {
     worker.postMessage({ compressor: 'resume' })
 })
 
-async function resistor(gun, neurons, frequency) {
-    while (neurons.length > 0) {
-        const neuron = randomItemFromArray(neurons)
-        await delay(60000 / frequency)
+export async function inputResistor(gun, frequency) {
+    while (true) {
+        // console.log(ourPi.input.weights)
+        await delay(60000 / frequency + Math.random() * 1000)
+        const neuron = randomItemFromArray(ourPi.input.weights)
         if (typeof neuron.value !== 'undefined') {
+            // console.log(`firing neuron: input`)
             gun.put({ i: neuron.key, v: neuron.value })
         }
     }
-    await delay(5000)
-    await resistor(gun, neurons, frequency)
+}
+
+export async function outputResistor(gun, frequency) {
+    while (true) {
+        // console.log(ourPi.output.weights)
+        await delay(60000 / frequency + Math.random() * 1000)
+        const neuron = randomItemFromArray(ourPi.output.weights)
+        if (typeof neuron.value !== 'undefined') {
+            // console.log(`firing neuron: output`)
+            gun.put({ i: neuron.key, v: neuron.value })
+        }
+    }
+}
+
+export async function outputConnectorResistor(gun, frequency) {
+    while (true) {
+        // console.log(ourPi.outputConnector.weights)
+        await delay(60000 / frequency + Math.random() * 1000)
+        const neuron = randomItemFromArray(ourPi.outputConnector.weights)
+        if (typeof neuron.value !== 'undefined') {
+            // console.log(`firing neuron: oc`)
+            gun.put({ i: neuron.key, v: neuron.value })
+        }
+    }
+}
+
+export async function hiddenLayerResistor(gun, frequency, i, j) {
+    while (true) {
+        // console.log(ourPi.hiddenLayers[i][j].weights)
+        await delay(60000 / frequency + Math.random() * 1000)
+        const neuron = randomItemFromArray(ourPi.hiddenLayers[i][j].weights)
+        if (typeof neuron.value !== 'undefined') {
+            // console.log(`firing neuron: hl`)
+            gun.put({ i: neuron.key, v: neuron.value })
+        }
+    }
 }

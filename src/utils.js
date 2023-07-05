@@ -173,24 +173,6 @@ function mergeHiddenLayers(myNet, urBit) {
     return hiddenLayers
 }
 
-export function convertNetToObject(obj) {
-    if (Array.isArray(obj)) {
-        const newObj = {}
-        obj.forEach((element, index) => {
-            newObj[index] = convertNetToObject(element)
-        })
-        return newObj
-    } else if (typeof obj === 'object' && obj !== null) {
-        const newObj = {}
-        for (let key in obj) {
-            newObj[key] = convertNetToObject(obj[key])
-        }
-        return newObj
-    } else {
-        return obj
-    }
-}
-
 export function dataFormatter(allowedChars) {
     const obj = {
         indexTable: {},
@@ -283,18 +265,16 @@ export function instantiateGRUNetwork(config) {
 }
 
 export function registerBrain(gun, network, config) {
-    const db = gun.get('vector')
-
-    db.get('input')
+    gun.get('input')
         .get('weights')
         .on(async (data) => {
             console.log([data._['#'], data.i, data.v])
             network.input.weights[data.i] = data.v
         })
 
-    const layers = db.get('hiddenLayers')
+    const layers = gun.get('hiddenLayers')
     for (let i = 0; i < config.networkDepth; i++) {
-        const layer = db.get(i)
+        const layer = gun.get(i)
         network.hiddenLayers[i] = {}
         for (const j of keys.GRU) {
             const key = layer.get(j)
@@ -317,14 +297,14 @@ export function registerBrain(gun, network, config) {
         }
     }
 
-    db.get('output')
+    gun.get('output')
         .get('weights')
         .on(async (data) => {
             console.log([data._['#'], data.i, data.v])
             network.output.weights[data.i] = data.v
         })
 
-    db.get('outputConnector')
+    gun.get('outputConnector')
         .get('weights')
         .on(async (data) => {
             console.log([data._['#'], data.i, data.v])
