@@ -123,6 +123,7 @@ parentPort.on('message', async (data) => {
                     config.callbackPeriod * 2
                 )
                 step = schedule.next()
+                step.value = config.errorThresh
             }
             currentRate = step.value
             net.updateTrainingOptions({

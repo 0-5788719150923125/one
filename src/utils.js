@@ -268,7 +268,6 @@ export function registerListeners(db, network, config) {
     db.get('input')
         .get('weights')
         .on(async (data) => {
-            // console.log([data._['#'], data.i, data.v])
             network.input.weights[data.i] = data.v
         })
 
@@ -291,7 +290,6 @@ export function registerListeners(db, network, config) {
             }
 
             key.get('weights').on(async (data) => {
-                // console.log([data._['#'], data.i, data.v])
                 network.hiddenLayers[i][j].weights[data.i] = data.v
             })
         }
@@ -300,14 +298,34 @@ export function registerListeners(db, network, config) {
     db.get('output')
         .get('weights')
         .on(async (data) => {
-            // console.log([data._['#'], data.i, data.v])
             network.output.weights[data.i] = data.v
         })
 
     db.get('outputConnector')
         .get('weights')
         .on(async (data) => {
-            // console.log([data._['#'], data.i, data.v])
             network.outputConnector.weights[data.i] = data.v
         })
+}
+
+export function featherAndRotate(array) {
+    let reversed = false
+
+    for (let i = 1; i < array.length; i++) {
+        if (typeof array[i] !== 'number') {
+            array[i] = Math.random()
+        }
+
+        if (array[i] < array[i - 1]) {
+            let temp = array[i]
+            array[i] = array[i - 1]
+            array[i - 1] = temp
+            reversed = true
+            break
+        }
+    }
+
+    if (Math.random() < 0.5) array.reverse()
+
+    return array
 }
