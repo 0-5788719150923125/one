@@ -308,7 +308,7 @@ export function registerListeners(db, network, config) {
         })
 }
 
-export function featherAndRotate(array) {
+export function featherLayer(array) {
     let reversed = false
 
     for (let i = 1; i < array.length; i++) {
@@ -324,8 +324,6 @@ export function featherAndRotate(array) {
             break
         }
     }
-
-    if (Math.random() < 0.5) array.reverse()
 
     return array
 }

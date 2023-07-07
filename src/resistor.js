@@ -19,7 +19,7 @@ import {
     registerListeners,
     instantiateGRUNetwork,
     randomItemFromArray,
-    featherAndRotate
+    featherLayer
 } from './utils.js'
 import config from './config.js'
 
@@ -124,16 +124,18 @@ worker.on('message', async (data) => {
     try {
         const urBit = await reconstructNetwork(network)
         ourPi = await accumulateGradients(data.myNet, urBit)
-        ourPi.input.weights = featherAndRotate(ourPi.input.weights)
-        ourPi.output.weights = featherAndRotate(ourPi.output.weights)
-        ourPi.outputConnector.weights = featherAndRotate(
+        ourPi.input.weights = featherLayer(ourPi.input.weights)
+        ourPi.output.weights = featherLayer(ourPi.output.weights)
+        ourPi.outputConnector.weights = featherLayer(
             ourPi.outputConnector.weights
         )
         for (let i = 0; i < config.networkDepth; i++) {
             for (const j of keys.GRU) {
-                ourPi.hiddenLayers[i][j].weights = featherAndRotate(
+                ourPi.hiddenLayers[i][j].weights = featherLayer(
                     ourPi.hiddenLayers[i][j].weights
                 )
+                if (Math.random() < 0.5)
+                    ourPi.hiddenLayers[i][j].weights.reverse()
             }
         }
         worker.postMessage({ ourPi })
