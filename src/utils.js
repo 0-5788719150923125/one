@@ -26,7 +26,7 @@ export const keys = {
 
 export const delay = (ms) => new Promise((res) => setTimeout(res, ms))
 
-export const randomItemFromArray = (array) => {
+export function randomItemFromArray(array) {
     const key = Math.floor(Math.random() * array.length)
     const value = array[key]
     return { key, value }
@@ -267,9 +267,12 @@ export function instantiateGRUNetwork(config) {
 export function registerListeners(db, network, config) {
     db.get('input')
         .get('weights')
-        .on(async (data) => {
-            network.input.weights[data.i] = data.v
-        })
+        .on(
+            async (data) => {
+                network.input.weights[data.i] = data.v
+            },
+            { change: true }
+        )
 
     const layers = db.get('hiddenLayers')
     for (let i = 0; i < config.networkDepth; i++) {
@@ -289,23 +292,32 @@ export function registerListeners(db, network, config) {
                 weights: {}
             }
 
-            key.get('weights').on(async (data) => {
-                network.hiddenLayers[i][j].weights[data.i] = data.v
-            })
+            key.get('weights').on(
+                async (data) => {
+                    network.hiddenLayers[i][j].weights[data.i] = data.v
+                },
+                { change: true }
+            )
         }
     }
 
     db.get('output')
         .get('weights')
-        .on(async (data) => {
-            network.output.weights[data.i] = data.v
-        })
+        .on(
+            async (data) => {
+                network.output.weights[data.i] = data.v
+            },
+            { change: true }
+        )
 
     db.get('outputConnector')
         .get('weights')
-        .on(async (data) => {
-            network.outputConnector.weights[data.i] = data.v
-        })
+        .on(
+            async (data) => {
+                network.outputConnector.weights[data.i] = data.v
+            },
+            { change: true }
+        )
 }
 
 export function featherLayer(array) {

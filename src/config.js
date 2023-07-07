@@ -6,7 +6,7 @@ const config = {
     networkDepth: Number(process.env.NETWORK_DEPTH) || 2,
     iterations: 1000000000,
     trainingContextLength: Number(process.env.CONTEXT_LENGTH) || 3,
-    localContextLength: 23,
+    attentionLength: 23,
     initialRate: Number(process.env.LEARNING_RATE) || 0.001,
     decayRate: 0.999,
     regc: Number(process.env.REGC) || 0.00001,

@@ -73,7 +73,7 @@ gun.get('neurons')
             console.log(`input: ${message}`)
             context.push(message)
             if (context.length <= 1) return
-            while (context.length > config.localContextLength) {
+            while (context.length > config.attentionLength) {
                 context.shift()
             }
             await addData(`samples`, JSON.stringify(payload))
