@@ -264,62 +264,6 @@ export function instantiateGRUNetwork(config) {
     }
 }
 
-export function registerListeners(db, network, config) {
-    db.get('input')
-        .get('weights')
-        .on(
-            async (data) => {
-                network.input.weights[data.i] = data.v
-            },
-            { change: true }
-        )
-
-    const layers = db.get('hiddenLayers')
-    for (let i = 0; i < config.networkDepth; i++) {
-        const layer = layers.get(i)
-        network.hiddenLayers[i] = {}
-        for (const j of keys.GRU) {
-            const key = layer.get(j)
-            let columns = config.networkWidth
-            if (j.endsWith('InputMatrix') && i === 0) {
-                columns = config.inputCharacters.length + 1
-            } else if (j.endsWith('Bias')) {
-                columns = 1
-            }
-            network.hiddenLayers[i][j] = {
-                rows: config.networkWidth,
-                columns: columns,
-                weights: {}
-            }
-
-            key.get('weights').on(
-                async (data) => {
-                    network.hiddenLayers[i][j].weights[data.i] = data.v
-                },
-                { change: true }
-            )
-        }
-    }
-
-    db.get('output')
-        .get('weights')
-        .on(
-            async (data) => {
-                network.output.weights[data.i] = data.v
-            },
-            { change: true }
-        )
-
-    db.get('outputConnector')
-        .get('weights')
-        .on(
-            async (data) => {
-                network.outputConnector.weights[data.i] = data.v
-            },
-            { change: true }
-        )
-}
-
 export function featherLayer(array) {
     let reversed = false
 

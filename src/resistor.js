@@ -8,19 +8,7 @@ import 'gun/lib/rindexed.js'
 import 'gun/lib/webrtc.js'
 import 'gun/lib/yson.js'
 import { addData, getDataLength } from './cache.js'
-import {
-    ad,
-    bc,
-    createTrainingData,
-    delay,
-    keys,
-    accumulateGradients,
-    reconstructNetwork,
-    registerListeners,
-    instantiateGRUNetwork,
-    randomItemFromArray,
-    featherLayer
-} from './utils.js'
+import { ad, bc, createTrainingData, keys } from './utils.js'
 import config from './config.js'
 
 const totalSamples = await getDataLength('samples')
@@ -82,104 +70,85 @@ gun.get('neurons')
         }
     })
 
-let network = instantiateGRUNetwork(config)
-let ourPi = network
+const worker = new Worker('./src/compressor.js')
 
 const db = gun.get('vector')
-registerListeners(db, network, config)
 
-inputResistor(db.get('input').get('weights'), 33.3)
-outputResistor(db.get('output').get('weights'), 33.3)
-outputConnectorResistor(db.get('outputConnector').get('weights'), 33.3)
-
-for (let i = 0; i < config.networkDepth; i++) {
-    const layer = db.get('hiddenLayers').get(i)
-    network.hiddenLayers[i] = {}
-    for (const j of keys.GRU) {
-        const weights = layer.get(j).get('weights')
-        let columns = config.networkWidth
-        if (j.endsWith('InputMatrix') && i === 0) {
-            columns = config.inputCharacters.length + 1
-        } else if (j.endsWith('Bias')) {
-            columns = 1
+worker.postMessage({ compressor: 'start' })
+worker.on('message', async (data) => {
+    if (data.synapse) {
+        if (data.synapse.t === 'hiddenLayers') {
+            db.get(data.synapse.t)
+                .get(data.synapse.l)
+                .get(data.synapse.k)
+                .get('weights')
+                .put({ i: data.synapse.i, v: data.synapse.v })
+        } else {
+            db.get(data.synapse.t)
+                .get('weights')
+                .put({ i: data.synapse.i, v: data.synapse.v })
         }
-        if (!network.hiddenLayers[i][j]) {
+        return
+    }
+    if (data.compressor === 'failed') {
+        return worker.postMessage({ compressor: 'start' })
+    }
+})
+
+export function registerListeners(db, network, config) {
+    db.get('input')
+        .get('weights')
+        .on(async (data) => {
+            worker.postMessage({
+                neuron: { t: 'input', i: data.i, v: data.v }
+            })
+        })
+
+    const layers = db.get('hiddenLayers')
+    for (let i = 0; i < config.networkDepth; i++) {
+        const layer = layers.get(i)
+        network.hiddenLayers[i] = {}
+        for (const j of keys.GRU) {
+            const key = layer.get(j)
+            let columns = config.networkWidth
+            if (j.endsWith('InputMatrix') && i === 0) {
+                columns = config.inputCharacters.length + 1
+            } else if (j.endsWith('Bias')) {
+                columns = 1
+            }
             network.hiddenLayers[i][j] = {
                 rows: config.networkWidth,
                 columns: columns,
                 weights: {}
             }
-        }
-        hiddenLayerResistor(weights, 11.1, i, j)
-    }
-}
 
-const worker = new Worker('./src/compressor.js')
-
-worker.postMessage({ compressor: 'start' })
-worker.on('message', async (data) => {
-    if (data.compressor === 'failed' || !data.myNet) {
-        return worker.postMessage({ compressor: 'start' })
-    }
-    try {
-        const urBit = await reconstructNetwork(network)
-        ourPi = await accumulateGradients(data.myNet, urBit)
-        ourPi.input.weights = featherLayer(ourPi.input.weights)
-        ourPi.output.weights = featherLayer(ourPi.output.weights)
-        ourPi.outputConnector.weights = featherLayer(
-            ourPi.outputConnector.weights
-        )
-        for (let i = 0; i < config.networkDepth; i++) {
-            for (const j of keys.GRU) {
-                ourPi.hiddenLayers[i][j].weights = featherLayer(
-                    ourPi.hiddenLayers[i][j].weights
-                )
-            }
-        }
-        worker.postMessage({ ourPi })
-    } catch (err) {
-        console.error(err)
-        worker.postMessage({ ourPi: data.myNet })
-    }
-    worker.postMessage({ compressor: 'resume' })
-})
-
-export async function inputResistor(weights, frequency) {
-    while (true) {
-        await delay(60000 / frequency + Math.random() * 1000)
-        const neuron = randomItemFromArray(ourPi.input.weights)
-        if (typeof neuron.value !== 'undefined') {
-            weights.put({ i: neuron.key, v: neuron.value })
+            key.get('weights').on(async (data) => {
+                worker.postMessage({
+                    neuron: {
+                        t: 'hiddenLayers',
+                        l: i,
+                        k: j,
+                        i: data.i,
+                        v: data.v
+                    }
+                })
+            })
         }
     }
-}
 
-export async function outputResistor(weights, frequency) {
-    while (true) {
-        await delay(60000 / frequency + Math.random() * 1000)
-        const neuron = randomItemFromArray(ourPi.output.weights)
-        if (typeof neuron.value !== 'undefined') {
-            weights.put({ i: neuron.key, v: neuron.value })
-        }
-    }
-}
+    db.get('output')
+        .get('weights')
+        .on(async (data) => {
+            worker.postMessage({
+                neuron: { t: 'output', i: data.i, v: data.v }
+            })
+        })
 
-export async function outputConnectorResistor(weights, frequency) {
-    while (true) {
-        await delay(60000 / frequency + Math.random() * 1000)
-        const neuron = randomItemFromArray(ourPi.outputConnector.weights)
-        if (typeof neuron.value !== 'undefined') {
-            weights.put({ i: neuron.key, v: neuron.value })
-        }
-    }
-}
-
-export async function hiddenLayerResistor(weights, frequency, i, j) {
-    while (true) {
-        await delay(60000 / frequency + Math.random() * 1000)
-        const neuron = randomItemFromArray(ourPi.hiddenLayers[i][j].weights)
-        if (typeof neuron.value !== 'undefined') {
-            weights.put({ i: neuron.key, v: neuron.value })
-        }
-    }
+    db.get('outputConnector')
+        .get('weights')
+        .on(async (data) => {
+            worker.postMessage({
+                neuron: { t: 'outputConnector', i: data.i, v: data.v }
+            })
+        })
 }
