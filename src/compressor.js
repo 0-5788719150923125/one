@@ -58,6 +58,7 @@ parentPort.on('message', async (data) => {
             const tests = [
                 { sample: false, temperature: 0.0 },
                 { sample: true, temperature: 0.023 },
+                { sample: true, temperature: 0.123 },
                 { sample: true, temperature: 0.3 },
                 { sample: true, temperature: 0.7 }
             ]
