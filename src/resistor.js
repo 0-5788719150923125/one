@@ -134,8 +134,8 @@ worker.on('message', async (data) => {
                 ourPi.hiddenLayers[i][j].weights = featherLayer(
                     ourPi.hiddenLayers[i][j].weights
                 )
-                if (Math.random() < 0.5)
-                    ourPi.hiddenLayers[i][j].weights.reverse()
+                // if (Math.random() < 0.5)
+                //     ourPi.hiddenLayers[i][j].weights.reverse()
             }
         }
         worker.postMessage({ ourPi })
