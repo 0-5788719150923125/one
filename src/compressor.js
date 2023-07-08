@@ -26,11 +26,20 @@ parentPort.on('message', async (data) => {
             if (data.neuron.t === 'hiddenLayers') {
                 net.model.hiddenLayers[data.neuron.l][data.neuron.k].weights[
                     data.neuron.i
-                ] = data.neuron.v
+                ] =
+                    (data.neuron.v +
+                        net.model.hiddenLayers[data.neuron.l][data.neuron.k]
+                            .weights[data.neuron.i]) /
+                    2
             } else {
-                net.model[data.neuron.t].weights[data.neuron.i] = data.neuron.v
+                net.model[data.neuron.t].weights[data.neuron.i] =
+                    (data.neuron.v +
+                        net.model[data.neuron.t].weights[data.neuron.i]) /
+                    2
             }
-        } catch {}
+        } catch (err) {
+            console.log(err)
+        }
         return
     }
     if (data.compressor !== 'start') return
