@@ -1,3 +1,4 @@
+import fs from 'fs'
 import { parentPort } from 'worker_threads'
 import { recurrent, utilities } from 'brain.js'
 import { TrainStream } from 'train-stream'
@@ -31,11 +32,13 @@ parentPort.on('message', async (data) => {
                         net.model.hiddenLayers[data.neuron.l][data.neuron.k]
                             .weights[data.neuron.i]) /
                     2
+                net.model.hiddenLayers[data.neuron.l][data.neuron.k].weights
             } else {
                 net.model[data.neuron.t].weights[data.neuron.i] =
                     (data.neuron.v +
                         net.model[data.neuron.t].weights[data.neuron.i]) /
                     2
+                net.model[data.neuron.t].weights
             }
         } catch (err) {
             console.log(err)
@@ -56,7 +59,7 @@ parentPort.on('message', async (data) => {
         logPeriod: config.logPeriod,
         iterations: config.iterations,
         callbackPeriod: config.callbackPeriod,
-        callback: async () => {
+        callback: async (details) => {
             const tests = [
                 { sample: false, temperature: 0.0 },
                 { sample: true, temperature: 0.023 },
@@ -76,6 +79,12 @@ parentPort.on('message', async (data) => {
                 )
                 console.log(bc.ROOT + text + ad.TEXT)
             }
+
+            if (details.iterations === 0) return
+            fs.writeFileSync(
+                '/one/data/sorted.json',
+                JSON.stringify(net.toJSON())
+            )
         },
         floodCallback: async () => {
             let step = schedule?.next()

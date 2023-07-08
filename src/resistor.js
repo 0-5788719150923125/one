@@ -74,6 +74,8 @@ const worker = new Worker('./src/compressor.js')
 
 const db = gun.get('vector')
 
+registerListeners(db, config)
+
 worker.postMessage({ compressor: 'start' })
 worker.on('message', async (data) => {
     if (data.synapse) {
@@ -95,7 +97,7 @@ worker.on('message', async (data) => {
     }
 })
 
-export function registerListeners(db, network, config) {
+function registerListeners(db, config) {
     db.get('input')
         .get('weights')
         .on(async (data) => {
@@ -107,7 +109,6 @@ export function registerListeners(db, network, config) {
     const layers = db.get('hiddenLayers')
     for (let i = 0; i < config.networkDepth; i++) {
         const layer = layers.get(i)
-        network.hiddenLayers[i] = {}
         for (const j of keys.GRU) {
             const key = layer.get(j)
             let columns = config.networkWidth
@@ -116,12 +117,6 @@ export function registerListeners(db, network, config) {
             } else if (j.endsWith('Bias')) {
                 columns = 1
             }
-            network.hiddenLayers[i][j] = {
-                rows: config.networkWidth,
-                columns: columns,
-                weights: {}
-            }
-
             key.get('weights').on(async (data) => {
                 worker.postMessage({
                     neuron: {
