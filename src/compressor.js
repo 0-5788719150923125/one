@@ -3,15 +3,26 @@ import { parentPort } from 'worker_threads'
 import { recurrent, utilities } from 'brain.js'
 import { TrainStream } from 'train-stream'
 import { getRandomData } from './cache.js'
-import { ad, bc, elapsedTimeGenerator, randomItemFromArray } from './utils.js'
+import {
+    ad,
+    bc,
+    elapsedTimeGenerator,
+    featherLayer,
+    randomItemFromArray
+} from './utils.js'
 import config from './config.js'
 
 let currentRate = config.initialRate
 
+let decayRate = 0.999
+if (config.networkWidth > 64) decayRate = 0.888
+if (config.networkWidth > 128) decayRate = 0.666
+if (config.networkWidth >= 256) decayRate = 0.333
+
 const net = new recurrent.GRU({
     hiddenLayers: new Array(config.networkDepth).fill(config.networkWidth),
     learningRate: config.initialRate,
-    decayRate: config.decayRate,
+    decayRate: decayRate,
     clipval: config.clipval,
     errorThresh: config.errorThresh,
     regc: config.regc,
@@ -32,16 +43,22 @@ parentPort.on('message', async (data) => {
                         net.model.hiddenLayers[data.neuron.l][data.neuron.k]
                             .weights[data.neuron.i]) /
                     2
-                net.model.hiddenLayers[data.neuron.l][data.neuron.k].weights
+                net.model.hiddenLayers[data.neuron.l][data.neuron.k].weights =
+                    featherLayer(
+                        net.model.hiddenLayers[data.neuron.l][data.neuron.k]
+                            .weights
+                    )
             } else {
                 net.model[data.neuron.t].weights[data.neuron.i] =
                     (data.neuron.v +
                         net.model[data.neuron.t].weights[data.neuron.i]) /
                     2
-                net.model[data.neuron.t].weights
+                net.model[data.neuron.t].weights = featherLayer(
+                    net.model[data.neuron.t].weights
+                )
             }
         } catch (err) {
-            console.log(err)
+            // console.log(err)
         }
         return
     }
@@ -124,11 +141,10 @@ parentPort.on('message', async (data) => {
                     timer.next().value / 1000
                 ).toString()}/s, "error": ${color + details.error + ad.TEXT}}`
             )
-            if (isNaN(details.error)) {
-                parentPort.postMessage({ compressor: 'failed' })
-            }
         },
         doneTrainingCallback: async function (stats) {
+            if (isNaN(stats.error))
+                parentPort.postMessage({ compressor: 'failed' })
             console.log(
                 `trained in ${stats.iterations} iterations with error: ${stats.error}`
             )

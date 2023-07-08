@@ -265,8 +265,6 @@ export function instantiateGRUNetwork(config) {
 }
 
 export function featherLayer(array) {
-    let reversed = false
-
     for (let i = 1; i < array.length; i++) {
         if (typeof array[i] !== 'number') {
             array[i] = Math.random()
@@ -276,7 +274,6 @@ export function featherLayer(array) {
             let temp = array[i]
             array[i] = array[i - 1]
             array[i - 1] = temp
-            reversed = true
             break
         }
     }

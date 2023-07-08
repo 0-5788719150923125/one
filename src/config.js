@@ -8,7 +8,6 @@ const config = {
     trainingContextLength: Number(process.env.CONTEXT_LENGTH) || 3,
     attentionLength: 23,
     initialRate: Number(process.env.LEARNING_RATE) || 0.001,
-    decayRate: 0.999,
     regc: Number(process.env.REGC) || 0.00001,
     clipval: Number(process.env.CLIPVAL) || 5,
     errorThresh: 0.000001,
