@@ -8,7 +8,7 @@ import 'gun/lib/rindexed.js'
 import 'gun/lib/webrtc.js'
 import 'gun/lib/yson.js'
 import { addData, getDataLength } from './cache.js'
-import { ad, bc, createTrainingData, keys } from './utils.js'
+import { ad, bc, createTrainingData, delay, keys } from './utils.js'
 import config from './config.js'
 
 const totalSamples = await getDataLength('samples')
@@ -35,7 +35,7 @@ const gun = Gun({
 })
 
 const context = []
-gun.get('neurons')
+gun.get('domain')
     .get(config.focus)
     .on(async (node) => {
         try {
@@ -76,21 +76,25 @@ const db = gun.get('vector')
 
 registerListeners(db, config)
 
+async function fireBullet(bullet) {
+    try {
+        await delay(Math.random() * 5000)
+        if (bullet.t === 'hiddenLayers') {
+            db.get(bullet.t)
+                .get(bullet.l)
+                .get(bullet.k)
+                .get('weights')
+                .put({ i: bullet.i, v: bullet.v })
+        } else {
+            db.get(bullet.t).get('weights').put({ i: bullet.i, v: bullet.v })
+        }
+    } catch {}
+}
+
 worker.postMessage({ compressor: 'start' })
 worker.on('message', async (data) => {
-    if (data.synapse) {
-        if (data.synapse.t === 'hiddenLayers') {
-            db.get(data.synapse.t)
-                .get(data.synapse.l)
-                .get(data.synapse.k)
-                .get('weights')
-                .put({ i: data.synapse.i, v: data.synapse.v })
-        } else {
-            db.get(data.synapse.t)
-                .get('weights')
-                .put({ i: data.synapse.i, v: data.synapse.v })
-        }
-        return
+    if (data.bullet) {
+        return await fireBullet(data.bullet)
     }
     if (data.compressor === 'failed') {
         return worker.postMessage({ compressor: 'start' })

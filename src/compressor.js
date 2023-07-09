@@ -122,7 +122,7 @@ parentPort.on('message', async (data) => {
                 logPeriod: config.logPeriod,
                 callbackPeriod: config.callbackPeriod
             })
-            await fireSynapses(net)
+            await fireBullets(net)
             const batch = await createBatch(config.batchSize)
             readInputs(batch)
         },
@@ -162,20 +162,20 @@ parentPort.on('message', async (data) => {
     }
 })
 
-async function fireSynapses(net) {
+async function fireBullets(net) {
     const input = randomItemFromArray(net.model.input.weights)
     parentPort.postMessage({
-        synapse: { t: 'input', i: input.key, v: input.value }
+        bullet: { t: 'input', i: input.key, v: input.value }
     })
     const output = randomItemFromArray(net.model.output.weights)
     parentPort.postMessage({
-        synapse: { t: 'output', i: output.key, v: output.value }
+        bullet: { t: 'output', i: output.key, v: output.value }
     })
     const outputConnector = randomItemFromArray(
         net.model.outputConnector.weights
     )
     parentPort.postMessage({
-        synapse: {
+        bullet: {
             t: 'outputConnector',
             i: outputConnector.key,
             v: outputConnector.value
@@ -187,7 +187,7 @@ async function fireSynapses(net) {
                 net.model.hiddenLayers[i][key].weights
             )
             parentPort.postMessage({
-                synapse: {
+                bullet: {
                     t: 'hiddenLayers',
                     l: i,
                     k: key,
