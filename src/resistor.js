@@ -79,17 +79,13 @@ registerListeners(db, config)
 async function fireBullet(bullet) {
     try {
         await delay(Math.random() * 5000)
+        let target = null
         if (bullet.t === 'hiddenLayers') {
-            db.get(bullet.t)
-                .get(bullet.l)
-                .get(bullet.k)
-                .get('weights')
-                .put(JSON.stringify({ i: bullet.i, v: bullet.v }))
+            target = db.get(bullet.t).get(bullet.l).get(bullet.k)
         } else {
-            db.get(bullet.t)
-                .get('weights')
-                .put(JSON.stringify({ i: bullet.i, v: bullet.v }))
+            target = db.get(bullet.t)
         }
+        target.get('weights').put(JSON.stringify({ i: bullet.i, v: bullet.v }))
     } catch {}
 }
 
