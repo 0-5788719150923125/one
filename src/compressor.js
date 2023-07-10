@@ -59,7 +59,6 @@ parentPort.on('message', async (data) => {
                     )
             } else {
                 if (!net.model[data.neuron.t].weights[data.neuron.i]) return
-                console.log('passing')
                 net.model[data.neuron.t].weights[data.neuron.i] =
                     (data.neuron.v +
                         net.model[data.neuron.t].weights[data.neuron.i]) /
