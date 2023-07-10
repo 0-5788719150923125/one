@@ -8,9 +8,13 @@ import {
     bc,
     elapsedTimeGenerator,
     featherLayer,
+    getRandomIdentity,
     randomItemFromArray
 } from './utils.js'
 import config from './config.js'
+
+const identity = getRandomIdentity().toString()
+console.log('my id is ' + identity)
 
 let currentRate = config.initialRate
 
@@ -90,7 +94,7 @@ parentPort.on('message', async (data) => {
                     `generating text at temperature of ${test.temperature.toString()}`
                 )
                 const text = net.run(
-                    `What is your name?${config.wall}`,
+                    `What is your name?${config.wall}${identity}${config.wall}`,
                     test.sample,
                     test.temperature
                 )
@@ -98,10 +102,7 @@ parentPort.on('message', async (data) => {
             }
 
             if (details.iterations === 0) return
-            fs.writeFileSync(
-                '/one/data/sorted.json',
-                JSON.stringify(net.toJSON())
-            )
+            fs.writeFileSync('/one/data/net.json', JSON.stringify(net.toJSON()))
         },
         floodCallback: async () => {
             let step = schedule?.next()
@@ -143,11 +144,10 @@ parentPort.on('message', async (data) => {
             )
         },
         doneTrainingCallback: async function (stats) {
-            if (isNaN(stats.error))
-                parentPort.postMessage({ compressor: 'failed' })
             console.log(
                 `trained in ${stats.iterations} iterations with error: ${stats.error}`
             )
+            parentPort.postMessage({ compressor: 'failed' })
         }
     })
 
@@ -208,7 +208,13 @@ async function createBatch(batchSize) {
         while (value.input.length > maxLength) {
             value.input.shift()
         }
-        return `${value.input.join(config.wall)}${config.wall}${value.output}`
+        return `${
+            Math.random() < 0.5
+                ? getRandomIdentity().toString() + config.wall
+                : ''
+        }${value.input.join(
+            config.wall + getRandomIdentity().toString() + config.wall
+        )}${config.wall + identity + config.wall}${value.output}`
     })
 }
 
