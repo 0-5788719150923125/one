@@ -40,6 +40,11 @@ parentPort.on('message', async (data) => {
     if (data.neuron) {
         try {
             if (data.neuron.t === 'hiddenLayers') {
+                if (
+                    !net.model.hiddenLayers[data.neuron.l][data.neuron.k]
+                        .weights[data.neuron.i]
+                )
+                    return
                 net.model.hiddenLayers[data.neuron.l][data.neuron.k].weights[
                     data.neuron.i
                 ] =
@@ -53,6 +58,8 @@ parentPort.on('message', async (data) => {
                             .weights
                     )
             } else {
+                if (!net.model[data.neuron.t].weights[data.neuron.i]) return
+                console.log('passing')
                 net.model[data.neuron.t].weights[data.neuron.i] =
                     (data.neuron.v +
                         net.model[data.neuron.t].weights[data.neuron.i]) /
