@@ -17,19 +17,24 @@ const gun = Gun({
 
 function fire() {
     const num = Math.floor(Math.random() * 100)
-    gun.get('vector').get('input').get('weights').put({
-        i: num,
-        v: Math.random()
-    })
+
+    const neurons = gun.get('ignore').get('neurons')
+
+    const neuron = gun
+        .get('ignore')
+        .get('neuron')
+        .put(JSON.stringify({ i: num, v: Math.random() }))
+    neurons.set(neuron)
+
+    neurons.set(neuron)
     console.log(num)
     setTimeout(fire, 5000)
 }
 
 fire()
 
-gun.get('vector')
-    .get('input')
-    .get('weights')
+gun.get('ignore')
+    .get('neuron')
     .on((data) => {
         console.log(data)
     })

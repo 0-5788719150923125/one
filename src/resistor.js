@@ -72,7 +72,7 @@ gun.get('domain')
 
 const worker = new Worker('./src/compressor.js')
 
-const db = gun.get('vector')
+const db = gun.get('neuron')
 
 registerListeners(db, config)
 
@@ -84,9 +84,11 @@ async function fireBullet(bullet) {
                 .get(bullet.l)
                 .get(bullet.k)
                 .get('weights')
-                .put({ i: bullet.i, v: bullet.v })
+                .put(JSON.stringify({ i: bullet.i, v: bullet.v }))
         } else {
-            db.get(bullet.t).get('weights').put({ i: bullet.i, v: bullet.v })
+            db.get(bullet.t)
+                .get('weights')
+                .put(JSON.stringify({ i: bullet.i, v: bullet.v }))
         }
     } catch {}
 }
@@ -105,9 +107,12 @@ function registerListeners(db, config) {
     db.get('input')
         .get('weights')
         .on(async (data) => {
-            worker.postMessage({
-                neuron: { t: 'input', i: data.i, v: data.v }
-            })
+            try {
+                const bullet = JSON.parse(data)
+                worker.postMessage({
+                    neuron: { t: 'input', i: bullet.i, v: bullet.v }
+                })
+            } catch {}
         })
 
     const layers = db.get('hiddenLayers')
@@ -122,15 +127,18 @@ function registerListeners(db, config) {
                 columns = 1
             }
             key.get('weights').on(async (data) => {
-                worker.postMessage({
-                    neuron: {
-                        t: 'hiddenLayers',
-                        l: i,
-                        k: j,
-                        i: data.i,
-                        v: data.v
-                    }
-                })
+                try {
+                    const bullet = JSON.parse(data)
+                    worker.postMessage({
+                        neuron: {
+                            t: 'hiddenLayers',
+                            l: i,
+                            k: j,
+                            i: bullet.i,
+                            v: bullet.v
+                        }
+                    })
+                } catch {}
             })
         }
     }
@@ -138,16 +146,22 @@ function registerListeners(db, config) {
     db.get('output')
         .get('weights')
         .on(async (data) => {
-            worker.postMessage({
-                neuron: { t: 'output', i: data.i, v: data.v }
-            })
+            try {
+                const bullet = JSON.parse(data)
+                worker.postMessage({
+                    neuron: { t: 'output', i: bullet.i, v: bullet.v }
+                })
+            } catch {}
         })
 
     db.get('outputConnector')
         .get('weights')
         .on(async (data) => {
-            worker.postMessage({
-                neuron: { t: 'outputConnector', i: data.i, v: data.v }
-            })
+            try {
+                const bullet = JSON.parse(data)
+                worker.postMessage({
+                    neuron: { t: 'outputConnector', i: bullet.i, v: bullet.v }
+                })
+            } catch {}
         })
 }
