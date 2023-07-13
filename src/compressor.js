@@ -77,7 +77,7 @@ parentPort.on('message', async (data) => {
     const timer = elapsedTimeGenerator()
 
     let lastError = 0
-    net.fromJSON(JSON.parse(fs.readFileSync('/one/data/net.json')))
+    // net.fromJSON(JSON.parse(fs.readFileSync('/one/data/net.json')))
     net.updateTrainingOptions({ errorThresh: config.errorThresh })
     const trainStream = new TrainStream({
         neuralNetwork: net,
