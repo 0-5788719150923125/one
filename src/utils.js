@@ -285,8 +285,8 @@ export function featherLayer(array) {
 
 export function jaggedLayer(array) {
     for (let i = 2; i < array.length; i++) {
-        let was = 0
-        let is = 0
+        let was = null
+        let is = null
         if (array[i - 2] < array[i - 1]) was = 'higher'
         else if (array[i - 2] >= array[i - 1]) was = 'lower'
         if (array[i] < array[i - 1]) is = 'higher'

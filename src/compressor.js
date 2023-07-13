@@ -220,7 +220,7 @@ async function createBatch(batchSize) {
                 : ''
         }${value.input.join(
             config.wall + getRandomIdentity().toString() + config.wall
-        )}${config.wall + identity + config.wall}${value.output}`
+        )}${config.wall + identity + config.wall}${value.output}${config.wall}`
     })
 }
 
