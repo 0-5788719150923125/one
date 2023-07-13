@@ -42,7 +42,7 @@ parentPort.on('message', async (data) => {
             if (b.t === 'hiddenLayers') {
                 if (b.k === 'resetGateBias' || b.k === 'updateGateBias') {
                     net.model.hiddenLayers[b.l][b.k].weights[b.i] =
-                        Math.random()
+                        Math.random() - 0.5
                 }
                 net.model.hiddenLayers[b.l][b.k].weights[b.i] =
                     (b.v + net.model.hiddenLayers[b.l][b.k].weights[b.i]) / 2
