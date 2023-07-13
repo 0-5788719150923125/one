@@ -267,10 +267,6 @@ export function instantiateGRUNetwork(config) {
 export function featherLayer(array) {
     let sorted = false
     for (let i = 1; i < array.length; i++) {
-        if (typeof array[i] !== 'number') {
-            array[i] = Math.random()
-        }
-
         if (array[i] < array[i - 1]) {
             let temp = array[i]
             array[i] = array[i - 1]
@@ -282,6 +278,25 @@ export function featherLayer(array) {
 
     if (!sorted && array[0] !== 0 && array.length > 1000) {
         console.log('a layer is already sorted!')
+    }
+
+    return array
+}
+
+export function jaggedLayer(array) {
+    for (let i = 2; i < array.length; i++) {
+        let was = 0
+        let is = 0
+        if (array[i - 2] < array[i - 1]) was = 'higher'
+        else if (array[i - 2] >= array[i - 1]) was = 'lower'
+        if (array[i] < array[i - 1]) is = 'higher'
+        if (array[i] >= array[i - 1]) is = 'lower'
+        if (was !== is) {
+            let temp = array[i]
+            array[i] = array[i - 1]
+            array[i - 1] = temp
+            break
+        }
     }
 
     return array
