@@ -18,6 +18,7 @@ services:
       - ./src:/one/src
       - ./data:/one/data
     environment:
+      NAME: ${NAME:-brain1}
       FOCUS: ${FOCUS:-trade}
       NETWORK_WIDTH: ${NETWORK_WIDTH:-144}
       NETWORK_DEPTH: ${NETWORK_DEPTH:-6}

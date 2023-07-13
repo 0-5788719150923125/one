@@ -13,6 +13,8 @@ import {
 } from './utils.js'
 import config from './config.js'
 
+const net_name = process.env.NAME
+
 const identity = getRandomIdentity().toString()
 console.log('my id is ' + identity)
 
@@ -77,7 +79,9 @@ parentPort.on('message', async (data) => {
     const timer = elapsedTimeGenerator()
 
     let lastError = 0
-    // net.fromJSON(JSON.parse(fs.readFileSync('/one/data/net.json')))
+    if (fs.existsSync(`/one/data/${net_name}.json`)) {
+        net.fromJSON(JSON.parse(fs.readFileSync(`/one/data/${net_name}.json`)))
+    }
     net.updateTrainingOptions({ errorThresh: config.errorThresh })
     const trainStream = new TrainStream({
         neuralNetwork: net,
@@ -106,9 +110,11 @@ parentPort.on('message', async (data) => {
                 )
                 console.log(bc.ROOT + text + ad.TEXT)
             }
-
             if (details.iterations === 0) return
-            fs.writeFileSync('/one/data/net.json', JSON.stringify(net.toJSON()))
+            fs.writeFileSync(
+                `/one/data/${net_name}.json`,
+                JSON.stringify(net.toJSON())
+            )
         },
         floodCallback: async () => {
             let step = schedule?.next()
