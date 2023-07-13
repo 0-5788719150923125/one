@@ -20,10 +20,7 @@ console.log('my id is ' + identity)
 
 let currentRate = config.initialRate
 
-let decayRate = 0.999
-if (config.networkWidth > 64) decayRate = 0.888
-if (config.networkWidth > 128) decayRate = 0.666
-if (config.networkWidth >= 256) decayRate = 0.333
+let decayRate = calculateDecayRate(config.networkWidth, 64, 768, 0.111, 0.999)
 
 const net = new recurrent.GRU({
     hiddenLayers: new Array(config.networkDepth).fill(config.networkWidth),
@@ -39,38 +36,26 @@ const net = new recurrent.GRU({
 })
 
 parentPort.on('message', async (data) => {
-    if (data.neuron) {
+    if (data.bullet) {
+        const b = data.bullet
         try {
-            if (data.neuron.t === 'hiddenLayers') {
-                if (
-                    !net.model.hiddenLayers[data.neuron.l][data.neuron.k]
-                        .weights[data.neuron.i]
+            if (b.t === 'hiddenLayers') {
+                if (b.k === 'resetGateBias' || b.k === 'updateGateBias') {
+                    net.model.hiddenLayers[b.l][b.k].weights[b.i] =
+                        Math.random()
+                }
+                net.model.hiddenLayers[b.l][b.k].weights[b.i] =
+                    (b.v + net.model.hiddenLayers[b.l][b.k].weights[b.i]) / 2
+                net.model.hiddenLayers[b.l][b.k].weights = featherLayer(
+                    net.model.hiddenLayers[b.l][b.k].weights
                 )
-                    return
-                net.model.hiddenLayers[data.neuron.l][data.neuron.k].weights[
-                    data.neuron.i
-                ] =
-                    (data.neuron.v +
-                        net.model.hiddenLayers[data.neuron.l][data.neuron.k]
-                            .weights[data.neuron.i]) /
-                    2
-                net.model.hiddenLayers[data.neuron.l][data.neuron.k].weights =
-                    featherLayer(
-                        net.model.hiddenLayers[data.neuron.l][data.neuron.k]
-                            .weights
-                    )
             } else {
-                if (!net.model[data.neuron.t].weights[data.neuron.i]) return
-                net.model[data.neuron.t].weights[data.neuron.i] =
-                    (data.neuron.v +
-                        net.model[data.neuron.t].weights[data.neuron.i]) /
-                    2
-                net.model[data.neuron.t].weights = featherLayer(
-                    net.model[data.neuron.t].weights
-                )
+                net.model[b.t].weights[b.i] =
+                    (b.v + net.model[b.t].weights[b.i]) / 2
+                net.model[b.t].weights = featherLayer(net.model[b.t].weights)
             }
         } catch (err) {
-            // console.log(err)
+            console.log(err)
         }
         return
     }
@@ -238,5 +223,17 @@ function* cosineScheduler(max, min, iterations) {
         const cosValue = Math.cos((Math.PI * i) / halfIterations)
         const currentValue = min + 0.5 * range * (1 + cosValue)
         yield currentValue
+    }
+}
+
+function calculateDecayRate(integerValue, minInt, maxInt, min, max) {
+    if (integerValue <= minInt) {
+        return max
+    } else if (integerValue >= maxInt) {
+        return min
+    } else {
+        const slope = (max - min) / (minInt - maxInt)
+        const intercept = max - slope * minInt
+        return slope * integerValue + intercept
     }
 }

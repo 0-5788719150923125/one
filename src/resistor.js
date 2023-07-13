@@ -99,14 +99,23 @@ worker.on('message', async (data) => {
     }
 })
 
+function isBullet(data) {
+    return typeof data.i === 'number' && typeof data.v === 'number'
+}
+
 function registerListeners(db, config) {
+    const maxInputLength =
+        (config.inputCharacters.length + 2) *
+        (config.inputCharacters.length + 1)
     db.get('input')
         .get('weights')
         .on(async (data) => {
             try {
                 const bullet = JSON.parse(data)
+                if (!isBullet(bullet)) return
+                if (bullet.i > maxInputLength) return
                 worker.postMessage({
-                    neuron: { t: 'input', i: bullet.i, v: bullet.v }
+                    bullet: { t: 'input', i: bullet.i, v: bullet.v }
                 })
             } catch {}
         })
@@ -122,11 +131,14 @@ function registerListeners(db, config) {
             } else if (j.endsWith('Bias')) {
                 columns = 1
             }
+            const maxLayerLength = config.networkWidth * columns
             key.get('weights').on(async (data) => {
                 try {
                     const bullet = JSON.parse(data)
+                    if (!isBullet(bullet)) return
+                    if (bullet.i > maxLayerLength) return
                     worker.postMessage({
-                        neuron: {
+                        bullet: {
                             t: 'hiddenLayers',
                             l: i,
                             k: j,
@@ -139,24 +151,31 @@ function registerListeners(db, config) {
         }
     }
 
+    const maxOutputLength = config.inputCharacters.length + 2
     db.get('output')
         .get('weights')
         .on(async (data) => {
             try {
                 const bullet = JSON.parse(data)
+                if (!isBullet(bullet)) return
+                if (bullet.i > maxOutputLength) return
                 worker.postMessage({
-                    neuron: { t: 'output', i: bullet.i, v: bullet.v }
+                    bullet: { t: 'output', i: bullet.i, v: bullet.v }
                 })
             } catch {}
         })
 
+    const maxOutputConnectorLength =
+        (config.inputCharacters.length + 2) * config.networkWidth
     db.get('outputConnector')
         .get('weights')
         .on(async (data) => {
             try {
                 const bullet = JSON.parse(data)
+                if (!isBullet(bullet)) return
+                if (bullet.i > maxOutputConnectorLength) return
                 worker.postMessage({
-                    neuron: { t: 'outputConnector', i: bullet.i, v: bullet.v }
+                    bullet: { t: 'outputConnector', i: bullet.i, v: bullet.v }
                 })
             } catch {}
         })
