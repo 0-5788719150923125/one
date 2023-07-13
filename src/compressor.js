@@ -13,7 +13,7 @@ import {
 } from './utils.js'
 import config from './config.js'
 
-const net_name = process.env.NAME
+const net_name = process.env.NAME || 'brain1'
 
 const identity = getRandomIdentity().toString()
 console.log('my id is ' + identity)
