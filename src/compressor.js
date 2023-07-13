@@ -41,23 +41,15 @@ parentPort.on('message', async (data) => {
         const b = data.bullet
         try {
             if (b.t === 'hiddenLayers') {
-                let jagged = false
                 if (b.k === 'resetGateBias' || b.k === 'updateGateBias') {
                     net.model.hiddenLayers[b.l][b.k].weights[b.i] =
                         Math.random() - 0.5
-                    jagged = true
                 }
                 net.model.hiddenLayers[b.l][b.k].weights[b.i] =
                     (b.v + net.model.hiddenLayers[b.l][b.k].weights[b.i]) / 2
-                if (jagged) {
-                    net.model.hiddenLayers[b.l][b.k].weights = jaggedLayer(
-                        net.model.hiddenLayers[b.l][b.k].weights
-                    )
-                } else {
-                    net.model.hiddenLayers[b.l][b.k].weights = featherLayer(
-                        net.model.hiddenLayers[b.l][b.k].weights
-                    )
-                }
+                net.model.hiddenLayers[b.l][b.k].weights = featherLayer(
+                    net.model.hiddenLayers[b.l][b.k].weights
+                )
             } else {
                 net.model[b.t].weights[b.i] =
                     (b.v + net.model[b.t].weights[b.i]) / 2
