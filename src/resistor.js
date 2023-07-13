@@ -27,7 +27,7 @@ if (totalSamples < config.trainingSamples) {
 }
 
 const gun = Gun({
-    peers: ['https://59.src.eco/gun'],
+    peers: ['https://59.src.eco/gun', 'https://95.src.eco/gun'],
     file: './data/gun',
     localStorage: false,
     radisk: true,

@@ -265,6 +265,7 @@ export function instantiateGRUNetwork(config) {
 }
 
 export function featherLayer(array) {
+    let sorted = false
     for (let i = 1; i < array.length; i++) {
         if (typeof array[i] !== 'number') {
             array[i] = Math.random()
@@ -274,8 +275,13 @@ export function featherLayer(array) {
             let temp = array[i]
             array[i] = array[i - 1]
             array[i - 1] = temp
+            sorted = true
             break
         }
+    }
+
+    if (!sorted && array[0] !== 0 && array.length > 1000) {
+        console.log('a layer is already sorted!')
     }
 
     return array
