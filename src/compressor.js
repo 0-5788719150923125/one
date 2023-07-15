@@ -8,16 +8,12 @@ import {
     bc,
     elapsedTimeGenerator,
     featherLayer,
-    getRandomIdentity,
     jaggedLayer,
     randomItemFromArray
 } from './utils.js'
 import config from './config.js'
 
 const net_name = process.env.NAME || 'brain1'
-
-const identity = getRandomIdentity().toString()
-console.log('my id is ' + identity)
 
 let currentRate = config.initialRate
 
@@ -42,8 +38,9 @@ parentPort.on('message', async (data) => {
         try {
             if (b.t === 'hiddenLayers') {
                 if (b.k === 'resetGateBias' || b.k === 'updateGateBias') {
-                    net.model.hiddenLayers[b.l][b.k].weights[b.i] =
-                        (Math.random() - 0.5) / 10
+                    // net.model.hiddenLayers[b.l][b.k].weights[b.i] =
+                    //     (Math.random() - 0.5) / 10
+                    net.model.hiddenLayers[b.l][b.k].weights.fill(0)
                 }
                 net.model.hiddenLayers[b.l][b.k].weights[b.i] =
                     (b.v + net.model.hiddenLayers[b.l][b.k].weights[b.i]) / 2
@@ -90,11 +87,7 @@ parentPort.on('message', async (data) => {
                     `generating text at temperature of ${test.temperature.toString()}`
                 )
                 const text = net.run(
-                    `Who are you?${config.wall}${getRandomIdentity()}${
-                        config.wall
-                    }Where are you from?${config.wall}${getRandomIdentity()}${
-                        config.wall
-                    }What is your name?${config.wall}${identity}${config.wall}`,
+                    `Who are you?${config.wall}0${config.wall}Where are you from?${config.wall}0${config.wall}What is your name?${config.wall}1${config.wall}`,
                     test.sample,
                     test.temperature
                 )
@@ -210,13 +203,9 @@ async function createBatch(batchSize) {
         while (value.input.length > maxLength) {
             value.input.shift()
         }
-        return `${
-            Math.random() < 0.5
-                ? getRandomIdentity().toString() + config.wall
-                : ''
-        }${value.input.join(
-            config.wall + getRandomIdentity().toString() + config.wall
-        )}${config.wall + identity + config.wall}${value.output}${config.wall}`
+        return `${value.input.join(config.wall + '0' + config.wall)}${
+            config.wall + '1' + config.wall
+        }${value.output}${config.wall}`
     })
 }
 
