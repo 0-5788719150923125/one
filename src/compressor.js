@@ -90,7 +90,11 @@ parentPort.on('message', async (data) => {
                     `generating text at temperature of ${test.temperature.toString()}`
                 )
                 const text = net.run(
-                    `What is your name?${config.wall}${identity}${config.wall}`,
+                    `Who are you?${config.wall}${getRandomIdentity()}${
+                        config.wall
+                    }Where are you from?${config.wall}${getRandomIdentity()}${
+                        config.wall
+                    }What is your name?${config.wall}${identity}${config.wall}`,
                     test.sample,
                     test.temperature
                 )
@@ -202,7 +206,7 @@ async function createBatch(batchSize) {
     return batch.map((string) => {
         const value = JSON.parse(string)
         const maxLength =
-            Math.floor(Math.random() * config.trainingContextLength) + 1
+            Math.floor(Math.random() * config.maxTrainingContextLength - 2) + 2
         while (value.input.length > maxLength) {
             value.input.shift()
         }
