@@ -5,7 +5,7 @@ const config = {
     networkWidth: Number(process.env.NETWORK_WIDTH) || 64,
     networkDepth: Number(process.env.NETWORK_DEPTH) || 2,
     iterations: 1000000000,
-    maxTrainingContextLength: 9,
+    maxTrainingContextLength: 5,
     attentionLength: 23,
     initialRate: Number(process.env.LEARNING_RATE) || 0.001,
     regc: Number(process.env.REGC) || 0.00001,
