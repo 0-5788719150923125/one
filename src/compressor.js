@@ -203,7 +203,7 @@ async function createBatch(batchSize) {
         while (value.input.length > maxLength) {
             value.input.shift()
         }
-        return `${value.input.join(config.wall + '0' + config.wall)}${
+        return `${value.input.join(config.wall + '2' + config.wall)}${
             config.wall + '1' + config.wall
         }${value.output}${config.wall}`
     })

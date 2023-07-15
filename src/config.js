@@ -1,4 +1,7 @@
+const sim = Math.random() < 0.666 ? true : false
+
 const config = {
+    sim: sim ? 1 : 0,
     focus: process.env.FOCUS || 'trade',
     batchSize: Number(process.env.BATCH_SIZE) || 6,
     trainingSamples: Number(process.env.TRAINING_SAMPLES) || 1024,
@@ -14,7 +17,9 @@ const config = {
     logPeriod: 1,
     callbackPeriod: 100,
     wall: '¶',
-    inputCharacters: `0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,;:.?!()[]"'\`$@#%^&*=+-{}\\/¶ `
+    inputCharacters: `${
+        sim ? '01' : '10'
+    }23456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,;:.?!()[]"'\`$@#%^&*=+-{}\\/¶ `
 }
 
 export default config
