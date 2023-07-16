@@ -87,7 +87,7 @@ parentPort.on('message', async (data) => {
                     `generating text at temperature of ${test.temperature.toString()}`
                 )
                 const text = net.run(
-                    `Who are you?${config.wall}0${config.wall}Where are you from?${config.wall}0${config.wall}What is your name?${config.wall}1${config.wall}`,
+                    `Who are you?${config.wall}2${config.wall}Where are you from?${config.wall}2${config.wall}What is your name?${config.wall}1${config.wall}`,
                     test.sample,
                     test.temperature
                 )
