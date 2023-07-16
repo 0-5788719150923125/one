@@ -44,13 +44,13 @@ parentPort.on('message', async (data) => {
                 }
                 net.model.hiddenLayers[b.l][b.k].weights[b.i] =
                     (b.v + net.model.hiddenLayers[b.l][b.k].weights[b.i]) / 2
-                net.model.hiddenLayers[b.l][b.k].weights = featherLayer(
-                    net.model.hiddenLayers[b.l][b.k].weights
-                )
+                // net.model.hiddenLayers[b.l][b.k].weights = featherLayer(
+                //     net.model.hiddenLayers[b.l][b.k].weights
+                // )
             } else {
                 net.model[b.t].weights[b.i] =
                     (b.v + net.model[b.t].weights[b.i]) / 2
-                net.model[b.t].weights = featherLayer(net.model[b.t].weights)
+                // net.model[b.t].weights = featherLayer(net.model[b.t].weights)
             }
         } catch (err) {
             console.log(err)
@@ -96,7 +96,7 @@ parentPort.on('message', async (data) => {
             if (details.iterations === 0) return
             fs.writeFileSync(
                 `/one/data/${net_name}.json`,
-                JSON.stringify(net.toJSON())
+                JSON.stringify(net.toJSON(), null, 2)
             )
         },
         floodCallback: async () => {

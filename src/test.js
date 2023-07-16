@@ -1,48 +1,48 @@
 import fs from 'node:fs'
 import { Recurrent, layer, utilities } from 'brain.js'
 import { TrainStream } from 'train-stream'
-import { mergeGRUNetworks } from './utils.js'
+// import { mergeGRUNetworks } from './utils.js'
 const { add, input, multiply, output, random, rnnCell, lstmCell } = layer
 
-const myNet = JSON.parse(fs.readFileSync('./networks/compressor.28.json'))
-const urBit = JSON.parse(fs.readFileSync('./networks/compressor.29.json'))
+// const myNet = JSON.parse(fs.readFileSync('./networks/compressor.28.json'))
+// const urBit = JSON.parse(fs.readFileSync('./networks/compressor.29.json'))
 
-const ourPi = mergeGRUNetworks(myNet, urBit)
+// const ourPi = mergeGRUNetworks(myNet, urBit)
 
-for (let i = 0; i < 4; i++) {
-    console.log('checking neuron ' + i.toString())
-    console.log('myNet')
-    console.log(myNet.hiddenLayers[0].updateGateInputMatrix.weights[i])
-    console.log('urBit')
-    console.log(urBit.hiddenLayers[0].updateGateInputMatrix.weights[i])
-    console.log('averaged')
-    console.log(ourPi.hiddenLayers[0].updateGateInputMatrix.weights[i])
-}
+// for (let i = 0; i < 4; i++) {
+//     console.log('checking neuron ' + i.toString())
+//     console.log('myNet')
+//     console.log(myNet.hiddenLayers[0].updateGateInputMatrix.weights[i])
+//     console.log('urBit')
+//     console.log(urBit.hiddenLayers[0].updateGateInputMatrix.weights[i])
+//     console.log('averaged')
+//     console.log(ourPi.hiddenLayers[0].updateGateInputMatrix.weights[i])
+// }
 
-fs.writeFileSync('./networks/depressed.json', JSON.stringify(ourPi))
+// fs.writeFileSync('./networks/depressed.json', JSON.stringify(ourPi))
 
-// const net = new Recurrent({
-//     inputLayer: () => input({ width: 1, height: 24 }),
-//     hiddenLayers: [
-//         (input, recurrentInput) =>
-//             lstmCell({ height: 3 }, input, recurrentInput)
-//     ],
-//     outputLayer: (input) => output({ width: 1, height: 1 }, input)
-// })
-// const xor = [
-//     ['do, a deer, a female deer'],
-//     ['rae, a drop of golden sun'],
-//     ['mi, a name I call myself'],
-//     ['fa, a long long way to run']
-// ]
+const net = new Recurrent({
+    inputLayer: () => input({ width: 1, height: 24 }),
+    hiddenLayers: [
+        (input, recurrentInput) =>
+            lstmCell({ height: 3 }, input, recurrentInput)
+    ],
+    outputLayer: (input) => output({ width: 1, height: 1 }, input)
+})
+const xor = [
+    ['do, a deer, a female deer'],
+    ['rae, a drop of golden sun'],
+    ['mi, a name I call myself'],
+    ['fa, a long long way to run']
+]
 
-// net.train(xor, {
-//     errorThresh: 0.023,
-//     iterations: 1,
-//     learningRate: 0.01,
-//     log: (details) => console.log(details),
-//     logPeriod: 10
-// })
+net.train(xor, {
+    errorThresh: 0.023,
+    iterations: 1,
+    learningRate: 0.01,
+    log: (details) => console.log(details),
+    logPeriod: 10
+})
 
 // console.log(net.run([0, 1]))
 

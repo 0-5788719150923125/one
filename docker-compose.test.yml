@@ -1,0 +1,13 @@
+version: '3.9'
+
+services:
+  brain-0:
+    image: ghcr.io/0-5788719150923125/one:latest
+    command: node src/test.js
+    restart: unless-stopped
+    user: 1000:1000
+    build:
+      context: .
+      dockerfile: Dockerfile.${ARCH:-x64}
+    volumes:
+      - ./src:/one/src
