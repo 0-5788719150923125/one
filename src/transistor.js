@@ -8,7 +8,8 @@ import {
     bc,
     elapsedTimeGenerator,
     featherLayer,
-    randomItemFromArray
+    binaryToUnicode,
+    unicodeToBinary
 } from './utils.js'
 import config from './config.js'
 
@@ -27,9 +28,7 @@ async function trainNetwork() {
         errorThresh: config.errorThresh,
         regc: config.regc,
         maxPredictionLength: 333,
-        dataFormatter: new utilities.DataFormatter(
-            Array.from(config.inputCharacters)
-        )
+        dataFormatter: new utilities.DataFormatter(Array.from('01'))
     })
 
     let schedule = null
@@ -65,11 +64,13 @@ async function trainNetwork() {
                     `generating text at temperature of ${test.temperature.toString()}`
                 )
                 const text = net.run(
-                    `Who are you?${config.wall}2${config.wall}Where are you from?${config.wall}2${config.wall}What is your name?${config.wall}1${config.wall}`,
+                    unicodeToBinary(
+                        `Who are you?${config.wall}2${config.wall}Where are you from?${config.wall}2${config.wall}What is your name?${config.wall}1${config.wall}`
+                    ),
                     test.sample,
                     test.temperature
                 )
-                console.log(bc.ROOT + text + ad.TEXT)
+                console.log(bc.ROOT + binaryToUnicode(text) + ad.TEXT)
             }
             if (details.iterations === 0) return
             fs.writeFileSync(
@@ -97,17 +98,17 @@ async function trainNetwork() {
                 callbackPeriod: config.callbackPeriod
             })
             // net.model.input.weights = featherLayer(net.model.input.weights)
-            for (let i = 0; i < config.networkDepth; i++) {
-                net.model.hiddenLayers[i].weight.weights = featherLayer(
-                    net.model.hiddenLayers[i].weight.weights
-                )
-                net.model.hiddenLayers[i].bias.weights = featherLayer(
-                    net.model.hiddenLayers[i].bias.weights
-                )
-                net.model.hiddenLayers[i].transition.weights = featherLayer(
-                    net.model.hiddenLayers[i].transition.weights
-                )
-            }
+            // for (let i = 0; i < config.networkDepth; i++) {
+            //     net.model.hiddenLayers[i].weight.weights = featherLayer(
+            //         net.model.hiddenLayers[i].weight.weights
+            //     )
+            //     net.model.hiddenLayers[i].bias.weights = featherLayer(
+            //         net.model.hiddenLayers[i].bias.weights
+            //     )
+            //     net.model.hiddenLayers[i].transition.weights = featherLayer(
+            //         net.model.hiddenLayers[i].transition.weights
+            //     )
+            // }
             // net.model.outputConnector.weights = featherLayer(
             //     net.model.outputConnector.weights
             // )
@@ -196,9 +197,11 @@ async function createBatch(batchSize) {
         while (value.input.length > maxLength) {
             value.input.shift()
         }
-        return `${value.input.join(config.wall + '2' + config.wall)}${
-            config.wall + '1' + config.wall
-        }${value.output}${config.wall}`
+        return unicodeToBinary(
+            `${value.input.join(config.wall + '2' + config.wall)}${
+                config.wall + '1' + config.wall
+            }${value.output}${config.wall}`
+        )
     })
 }
 

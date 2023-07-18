@@ -26,6 +26,39 @@ export const keys = {
 
 export const delay = (ms) => new Promise((res) => setTimeout(res, ms))
 
+const zero = 0n
+const shift = 8n
+const bigShift = 16n
+const byte = 255n
+
+export function unicodeToBinary(str) {
+    const encoder = new TextEncoder()
+    const encodedData = encoder.encode(str)
+    let binary = ''
+
+    for (let i = 0; i < encodedData.length; i++) {
+        const charBinary = encodedData[i].toString(2).padStart(8, '0')
+        binary += charBinary
+    }
+
+    return binary
+}
+
+export function binaryToUnicode(binary) {
+    const decoder = new TextDecoder('utf-8')
+    const byteArray = []
+
+    for (let i = 0; i < binary.length; i += 8) {
+        const byte = parseInt(binary.substr(i, 8), 2)
+        byteArray.push(byte)
+    }
+
+    const encodedData = new Uint8Array(byteArray)
+    const decodedString = decoder.decode(encodedData)
+
+    return decodedString
+}
+
 export function randomItemFromArray(array) {
     const key = Math.floor(Math.random() * array.length)
     const value = array[key]

@@ -57,7 +57,7 @@ parentPort.on('message', async (data) => {
         }
         return
     }
-    if (data.compressor !== 'start') return
+    if (data.command !== 'start') return
     let schedule = null
     const timer = elapsedTimeGenerator()
 
@@ -142,7 +142,7 @@ parentPort.on('message', async (data) => {
             console.log(
                 `trained in ${stats.iterations} iterations with error: ${stats.error}`
             )
-            parentPort.postMessage({ compressor: 'failed' })
+            parentPort.postMessage({ command: 'failed' })
         }
     })
 

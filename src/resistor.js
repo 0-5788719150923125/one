@@ -89,13 +89,13 @@ async function fireBullet(bullet) {
     } catch {}
 }
 
-worker.postMessage({ compressor: 'start' })
+worker.postMessage({ command: 'start' })
 worker.on('message', async (data) => {
     if (data.bullet) {
         return await fireBullet(data.bullet)
     }
-    if (data.compressor === 'failed') {
-        return worker.postMessage({ compressor: 'start' })
+    if (data.command === 'failed') {
+        return worker.postMessage({ command: 'start' })
     }
 })
 
