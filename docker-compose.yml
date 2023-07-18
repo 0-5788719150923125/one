@@ -13,7 +13,6 @@ services:
       resources:
         limits:
           cpus: ${CPUS:-4.0}
-    network_mode: 'host'
     volumes:
       - ./src:/one/src
       - ./data:/one/data
@@ -32,8 +31,6 @@ services:
     image: redis:7.0.5-alpine
     command: redis-server --save 300 1
     restart: unless-stopped
-    ports:
-      - 6379:6379
     volumes:
       - redis:/data
 

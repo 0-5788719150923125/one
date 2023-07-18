@@ -9,32 +9,32 @@ import 'gun/lib/yson.js'
 import 'gun/lib/open.js'
 
 const gun = Gun({
-    peers: ['https://59.src.eco/gun'],
-    localStorage: true,
+    // peers: ['https://59.src.eco/gun'],
+    localStorage: false,
     radisk: true,
     axe: false
 })
 
 function fire() {
-    const num = Math.floor(Math.random() * 100)
+    const num = Math.floor(Math.random() * 100000000)
 
-    const neurons = gun.get('ignore').get('neurons')
+    const things = gun
+        .get('more21')
+        .get(num)
+        .put({ v: JSON.stringify({ i: num, v: Math.random() }) })
 
-    const neuron = gun
-        .get('ignore')
-        .get('neuron')
-        .put(JSON.stringify({ i: num, v: Math.random() }))
-    neurons.set(neuron)
+    gun.get('stuffs2221').get(num).set(things)
 
-    neurons.set(neuron)
     console.log(num)
-    setTimeout(fire, 5000)
+    setTimeout(fire, 1000)
 }
 
 fire()
 
-gun.get('ignore')
-    .get('neuron')
-    .on((data) => {
+gun.get('stuffs2221')
+    .map()
+    .map()
+    .on((data, key) => {
+        console.log(key)
         console.log(data)
     })

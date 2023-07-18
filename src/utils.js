@@ -264,24 +264,48 @@ export function instantiateGRUNetwork(config) {
     }
 }
 
-export function featherLayer(array) {
-    let sorted = false
-    for (let i = 1; i < array.length; i++) {
-        if (array[i] < array[i - 1]) {
-            let temp = array[i]
-            array[i] = array[i - 1]
-            array[i - 1] = temp
-            sorted = true
-            break
+export function featherLayer(array, max = 1) {
+    let count = 0
+    while (count < max) {
+        for (let i = 1; i < array.length; i++) {
+            if (array[i] < array[i - 1]) {
+                const neuron = array[i]
+                let j = i - 1
+                while (j >= 0 && neuron < array[j]) {
+                    array[j + 1] = array[j]
+                    j--
+                }
+                array[j + 1] = neuron
+                break
+            }
         }
+        count++
     }
-
-    if (!sorted && array[0] !== 0 && array.length > 1000) {
-        console.log('a layer is already sorted!')
-    }
-
     return array
 }
+
+// export function featherLayer(array, max = 1) {
+//     let sorted = false
+//     let count = 0
+//     for (let i = 1; i < array.length; i++) {
+//         if (array[i] < array[i - 1]) {
+//             let temp = array[i]
+//             array[i] = array[i - 1]
+//             array[i - 1] = temp
+//             count++
+//             if (count === max) {
+//                 sorted = true
+//                 break
+//             }
+//         }
+//     }
+
+//     if (!sorted && array[0] !== 0 && array.length > 1000) {
+//         console.log('a layer is already sorted!')
+//     }
+
+//     return array
+// }
 
 export function jaggedLayer(array) {
     for (let i = 2; i < array.length; i++) {

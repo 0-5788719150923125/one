@@ -3,7 +3,7 @@ version: '3.9'
 services:
   brain-0:
     image: ghcr.io/0-5788719150923125/one:latest
-    command: node src/test.js
+    command: node src/transistor.js
     restart: unless-stopped
     user: 1000:1000
     build:
@@ -11,3 +11,19 @@ services:
       dockerfile: Dockerfile.${ARCH:-x64}
     volumes:
       - ./src:/one/src
+      - ./data:/one/data
+    networks:
+      - main
+    environment:
+      NETWORK_WIDTH: ${NETWORK_WIDTH:-144}
+      NETWORK_DEPTH: ${NETWORK_DEPTH:-6}
+      BATCH_SIZE: 6
+      TRAINING_SAMPLES: 1024
+      LEARNING_RATE: 0.001
+      REGC: 0.00001
+      CLIPVAL: 23
+
+networks:
+  main:
+    name: one_default
+    external: true

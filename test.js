@@ -1,22 +1,31 @@
-function linearSlide(
-    upperBound = 0.9,
-    lowerBound = 0.1,
-    upperValue = 0.1,
-    lowerValue = -1,
-    currentRate = 0.8
-) {
-    // Calculate the range of values
-    const valueRange = upperValue - lowerValue
-
-    // Calculate the rate range
-    const rateRange = upperBound - lowerBound
-
-    // Calculate the scaled value
-    const scaledValue =
-        (currentRate - lowerBound) * (valueRange / rateRange) + lowerValue
-
-    // Return the scaled value
-    return scaledValue
+function featherLayer(array, max = 1000) {
+    let count = 0
+    while (count < max) {
+        for (let i = 1; i < array.length; i++) {
+            if (array[i] < array[i - 1]) {
+                const neuron = array[i]
+                let j = i - 1
+                while (j >= 0 && neuron < array[j]) {
+                    array[j + 1] = array[j]
+                    j--
+                }
+                array[j + 1] = neuron
+                break
+            }
+        }
+        count++
+    }
+    return array
 }
 
-console.log(linearSlide())
+const arr = [
+    0.015776673331856728, -0.019608717411756516, -0.017048118636012077,
+    -0.008294210769236088, -0.03410675376653671, -0.04141797870397568,
+    -0.08484692126512527, 0.01608387380838394, -0.03788026049733162,
+    -0.09165415167808533, -0.014269198291003704, 0.0010279958369210362,
+    0.03970065712928772, 0.018466077744960785, -0.0901934802532196,
+    0.022456763312220573, 0.02008255384862423, -0.016157355159521103,
+    -0.02253641188144684, 0.009607377462089062, 0.0011444271076470613
+]
+
+console.log(featherLayer(arr))
