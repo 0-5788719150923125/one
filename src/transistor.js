@@ -6,6 +6,7 @@ import { getRandomData } from './cache.js'
 import {
     ad,
     bc,
+    dropout,
     elapsedTimeGenerator,
     featherLayer,
     binaryToUnicode,
@@ -27,7 +28,8 @@ async function trainNetwork() {
         clipval: config.clipval,
         errorThresh: config.errorThresh,
         regc: config.regc,
-        maxPredictionLength: 333,
+        smoothEps: 1e-11,
+        maxPredictionLength: 999,
         dataFormatter: new utilities.DataFormatter(Array.from('01'))
     })
 
@@ -151,43 +153,6 @@ async function trainNetwork() {
     }
 }
 
-// async function fireBullets(net) {
-//     const input = randomItemFromArray(net.model.input.weights)
-//     parentPort.postMessage({
-//         bullet: { t: 'input', i: input.key, v: input.value }
-//     })
-//     const output = randomItemFromArray(net.model.output.weights)
-//     parentPort.postMessage({
-//         bullet: { t: 'output', i: output.key, v: output.value }
-//     })
-//     const outputConnector = randomItemFromArray(
-//         net.model.outputConnector.weights
-//     )
-//     parentPort.postMessage({
-//         bullet: {
-//             t: 'outputConnector',
-//             i: outputConnector.key,
-//             v: outputConnector.value
-//         }
-//     })
-//     for (let i = 0; i < net.model.hiddenLayers.length; i++) {
-//         for (const key of Object.keys(net.model.hiddenLayers[i])) {
-//             const item = randomItemFromArray(
-//                 net.model.hiddenLayers[i][key].weights
-//             )
-//             parentPort.postMessage({
-//                 bullet: {
-//                     t: 'hiddenLayers',
-//                     l: i,
-//                     k: key,
-//                     i: item.key,
-//                     v: item.value
-//                 }
-//             })
-//         }
-//     }
-// }
-
 async function createBatch(batchSize) {
     const batch = await getRandomData('samples', batchSize)
     return batch.map((string) => {
@@ -197,10 +162,13 @@ async function createBatch(batchSize) {
         while (value.input.length > maxLength) {
             value.input.shift()
         }
-        return unicodeToBinary(
-            `${value.input.join(config.wall + '2' + config.wall)}${
-                config.wall + '1' + config.wall
-            }${value.output}${config.wall}`
+        return dropout(
+            unicodeToBinary(
+                `${value.input.join(config.wall + '2' + config.wall)}${
+                    config.wall + '1' + config.wall
+                }${value.output}${config.wall}`
+            ),
+            0.1
         )
     })
 }

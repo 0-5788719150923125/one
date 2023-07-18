@@ -59,6 +59,24 @@ export function binaryToUnicode(binary) {
     return decodedString
 }
 
+export function dropout(str, percent = 0.1) {
+    let replacedString = ''
+
+    for (let i = 0; i < str.length; i++) {
+        // Generate a random number between 0 and 1
+        const randomValue = Math.random()
+
+        // Replace the character with '2' if the random value is less than 0.1 (10% probability)
+        if (randomValue < percent) {
+            replacedString += '2'
+        } else {
+            replacedString += str[i]
+        }
+    }
+
+    return replacedString
+}
+
 export function randomItemFromArray(array) {
     const key = Math.floor(Math.random() * array.length)
     const value = array[key]

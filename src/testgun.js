@@ -9,7 +9,7 @@ import 'gun/lib/yson.js'
 import 'gun/lib/open.js'
 
 const gun = Gun({
-    // peers: ['https://59.src.eco/gun'],
+    peers: ['http://localhost:9667/gun'],
     localStorage: false,
     radisk: true,
     axe: false
@@ -26,15 +26,16 @@ function fire() {
     gun.get('stuffs2221').get(num).set(things)
 
     console.log(num)
-    setTimeout(fire, 1000)
+    console.log(gun.back('opt.peers'))
+    setTimeout(fire, 10000)
 }
 
 fire()
 
-gun.get('stuffs2221')
-    .map()
-    .map()
-    .on((data, key) => {
-        console.log(key)
-        console.log(data)
-    })
+// gun.get('stuffs2221')
+//     .map()
+//     .map()
+//     .on((data, key) => {
+//         console.log(key)
+//         console.log(data)
+//     })
