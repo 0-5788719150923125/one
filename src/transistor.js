@@ -6,6 +6,7 @@ import {
     ad,
     bc,
     binaryToUnicode,
+    chunkString,
     dropout,
     elapsedTimeGenerator,
     generateRandomBinaryString,
@@ -29,19 +30,11 @@ async function trainNetwork() {
         clipval: config.clipval,
         errorThresh: config.errorThresh,
         regc: 0.00001,
-        smoothEps: 1e-11,
+        smoothEps: 1e-8,
         maxPredictionLength: 999,
-        // dataFormatter: new utilities.DataFormatter(
-        //     Array.from({ length: 23 }, () => [
-        //         generateRandomBinaryString(getRandomLowNumber(1, 9, 0.8))
-        //     ])
-        // )
         dataFormatter: new utilities.DataFormatter([
             ...Array.from(config.inputCharacters).map((char) => [
-                getRandomSubset(
-                    unicodeToBinary(char),
-                    getRandomLowNumber(1, 9, 0.8)
-                )
+                unicodeToBinary(char)
             ])
         ])
     })

@@ -42,6 +42,10 @@
 
 // console.log(removeDuplicateNgrams(str, 2))
 
-import { getRandomLowNumber, getRandomSubset } from './src/utils.js'
+import {
+    getRandomLowNumber,
+    getRandomSubset,
+    chunkString
+} from './src/utils.js'
 
-console.log(getRandomSubset('Hello, world! My name is Ryan.', 9))
+console.log(chunkString('Hello, world! My name is Ryan.', 4))

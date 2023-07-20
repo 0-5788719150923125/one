@@ -59,6 +59,20 @@ export function binaryToUnicode(binary) {
     return decodedString
 }
 
+export function chunkString(str, size = 4) {
+    if (!str || typeof str !== 'string') {
+        throw new Error('Input must be a non-empty string.')
+    }
+
+    const chunks = []
+
+    for (let i = 0; i < str.length; i += size) {
+        chunks.push(str.slice(i, i + size))
+    }
+
+    return chunks
+}
+
 function logb(val, base) {
     return Math.log10(val) / Math.log10(base)
 }

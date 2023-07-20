@@ -11,7 +11,7 @@ const config = {
     maxTrainingContextLength: 5,
     attentionLength: 23,
     initialRate: Number(process.env.LEARNING_RATE) || 0.001,
-    dropout: 0.1,
+    dropout: 0.0,
     regc: Number(process.env.REGC) || 0.00001,
     clipval: Number(process.env.CLIPVAL) || 5,
     errorThresh: 0.000001,
