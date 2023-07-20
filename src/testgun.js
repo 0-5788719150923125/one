@@ -9,33 +9,27 @@ import 'gun/lib/yson.js'
 import 'gun/lib/open.js'
 
 const gun = Gun({
-    peers: ['http://localhost:9667/gun'],
+    // peers: ['http://localhost:9667/gun'],
     localStorage: false,
     radisk: true,
     axe: false
 })
 
 function fire() {
-    const num = Math.floor(Math.random() * 100000000)
+    const num = Math.floor(Math.random() * 10)
 
-    const things = gun
-        .get('more21')
-        .get(num)
-        .put({ v: JSON.stringify({ i: num, v: Math.random() }) })
+    const neuron = gun.get('neurons').get(num).put(Math.random())
 
-    gun.get('stuffs2221').get(num).set(things)
+    gun.get('grep').get(num).set(neuron)
 
     console.log(num)
-    console.log(gun.back('opt.peers'))
-    setTimeout(fire, 10000)
+
+    setTimeout(fire, 5000)
 }
 
 fire()
 
-// gun.get('stuffs2221')
-//     .map()
-//     .map()
-//     .on((data, key) => {
-//         console.log(key)
-//         console.log(data)
-//     })
+gun.get('grep')
+    .map()
+    .map()
+    .map((data, key) => console.log([key, data]))

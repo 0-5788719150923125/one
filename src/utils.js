@@ -59,6 +59,29 @@ export function binaryToUnicode(binary) {
     return decodedString
 }
 
+function logb(val, base) {
+    return Math.log10(val) / Math.log10(base)
+}
+function getRandomNumber(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min)
+}
+export function getRandomLowNumber(min, max, factor) {
+    var base = 1.0 / factor
+    var evtcnt = Math.floor(Math.pow(base, max - min + 1) - 1) / (base - 1)
+    var rndnum = getRandomNumber(1, evtcnt)
+    var expflr = Math.floor(logb((rndnum - 1) * (base - 1) + 1, base))
+    var rndres = max - expflr
+    return rndres
+}
+
+export function getRandomSubset(inputString, length) {
+    const subsetLength = Math.floor(Math.random() * length) + 1
+    const startIndex = Math.floor(
+        Math.random() * (inputString.length - subsetLength + 1)
+    )
+    return inputString.substring(startIndex, startIndex + subsetLength)
+}
+
 export function dropout(str, percent = 0.1) {
     let replacedString = ''
 
@@ -110,6 +133,18 @@ export function getRandomIdentity() {
         randomNumber = randomNumber + Math.floor(Math.random() * 10).toString()
     }
     return randomNumber
+}
+
+export function generateRandomBinaryString(maxLength = 9) {
+    const length = Math.floor(Math.random() * maxLength) + 1
+    let binaryString = ''
+
+    for (let i = 0; i < length; i++) {
+        const randomBit = Math.round(Math.random())
+        binaryString += randomBit
+    }
+
+    return binaryString
 }
 
 export function convertObjectToArray(obj) {

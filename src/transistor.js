@@ -1,15 +1,16 @@
 import fs from 'fs'
-import { parentPort } from 'worker_threads'
 import { recurrent, utilities } from 'brain.js'
 import { TrainStream } from 'train-stream'
 import { getRandomData } from './cache.js'
 import {
     ad,
     bc,
+    binaryToUnicode,
     dropout,
     elapsedTimeGenerator,
-    featherLayer,
-    binaryToUnicode,
+    generateRandomBinaryString,
+    getRandomLowNumber,
+    getRandomSubset,
     unicodeToBinary
 } from './utils.js'
 import config from './config.js'
@@ -21,16 +22,28 @@ let currentRate = config.initialRate
 let decayRate = calculateDecayRate(config.networkWidth, 64, 768, 0.111, 0.999)
 
 async function trainNetwork() {
-    const net = new recurrent.RNN({
+    const net = new recurrent.GRU({
         hiddenLayers: [64, 64, 64],
         learningRate: config.initialRate,
         decayRate: decayRate,
         clipval: config.clipval,
         errorThresh: config.errorThresh,
-        regc: config.regc,
+        regc: 0.00001,
         smoothEps: 1e-11,
         maxPredictionLength: 999,
-        dataFormatter: new utilities.DataFormatter(Array.from('01'))
+        // dataFormatter: new utilities.DataFormatter(
+        //     Array.from({ length: 23 }, () => [
+        //         generateRandomBinaryString(getRandomLowNumber(1, 9, 0.8))
+        //     ])
+        // )
+        dataFormatter: new utilities.DataFormatter([
+            ...Array.from(config.inputCharacters).map((char) => [
+                getRandomSubset(
+                    unicodeToBinary(char),
+                    getRandomLowNumber(1, 9, 0.8)
+                )
+            ])
+        ])
     })
 
     let schedule = null
@@ -52,7 +65,7 @@ async function trainNetwork() {
         logPeriod: config.logPeriod,
         iterations: config.iterations,
         callbackPeriod: config.callbackPeriod,
-        callback: async (details) => {
+        callback: async () => {
             const tests = [
                 { sample: false, temperature: 0.0 },
                 { sample: true, temperature: 0.023 },
@@ -74,7 +87,6 @@ async function trainNetwork() {
                 )
                 console.log(bc.ROOT + binaryToUnicode(text) + ad.TEXT)
             }
-            if (details.iterations === 0) return
             fs.writeFileSync(
                 `/one/data/${net_name}-RNN.json`,
                 JSON.stringify(net.toJSON(), null, 2)
@@ -99,22 +111,6 @@ async function trainNetwork() {
                 logPeriod: config.logPeriod,
                 callbackPeriod: config.callbackPeriod
             })
-            // net.model.input.weights = featherLayer(net.model.input.weights)
-            // for (let i = 0; i < config.networkDepth; i++) {
-            //     net.model.hiddenLayers[i].weight.weights = featherLayer(
-            //         net.model.hiddenLayers[i].weight.weights
-            //     )
-            //     net.model.hiddenLayers[i].bias.weights = featherLayer(
-            //         net.model.hiddenLayers[i].bias.weights
-            //     )
-            //     net.model.hiddenLayers[i].transition.weights = featherLayer(
-            //         net.model.hiddenLayers[i].transition.weights
-            //     )
-            // }
-            // net.model.outputConnector.weights = featherLayer(
-            //     net.model.outputConnector.weights
-            // )
-            // net.model.output.weights = featherLayer(net.model.output.weights)
             const batch = await createBatch(config.batchSize)
             readInputs(batch)
         },
@@ -168,7 +164,7 @@ async function createBatch(batchSize) {
                     config.wall + '1' + config.wall
                 }${value.output}${config.wall}`
             ),
-            0.1
+            config.dropout
         )
     })
 }
