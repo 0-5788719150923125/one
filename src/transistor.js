@@ -30,13 +30,11 @@ async function trainNetwork() {
         clipval: config.clipval,
         errorThresh: config.errorThresh,
         regc: 0.00001,
-        smoothEps: 1e-8,
+        smoothEps: 1e-11,
         maxPredictionLength: 999,
-        dataFormatter: new utilities.DataFormatter([
-            ...Array.from(config.inputCharacters).map((char) => [
-                unicodeToBinary(char)
-            ])
-        ])
+        dataFormatter: new utilities.DataFormatter(
+            Array.from(config.inputCharacters)
+        )
     })
 
     let schedule = null
@@ -72,9 +70,7 @@ async function trainNetwork() {
                     `generating text at temperature of ${test.temperature.toString()}`
                 )
                 const text = net.run(
-                    unicodeToBinary(
-                        `Who are you?${config.wall}2${config.wall}Where are you from?${config.wall}2${config.wall}What is your name?${config.wall}1${config.wall}`
-                    ),
+                    `Who are you?${config.wall}2${config.wall}Where are you from?${config.wall}2${config.wall}What is your name?${config.wall}1${config.wall}`,
                     test.sample,
                     test.temperature
                 )
@@ -151,14 +147,9 @@ async function createBatch(batchSize) {
         while (value.input.length > maxLength) {
             value.input.shift()
         }
-        return dropout(
-            unicodeToBinary(
-                `${value.input.join(config.wall + '2' + config.wall)}${
-                    config.wall + '1' + config.wall
-                }${value.output}${config.wall}`
-            ),
-            config.dropout
-        )
+        return `${value.input.join(config.wall + '2' + config.wall)}${
+            config.wall + '1' + config.wall
+        }${value.output}${config.wall}`
     })
 }
 

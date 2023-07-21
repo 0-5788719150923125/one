@@ -24,7 +24,7 @@ function fire() {
 
     console.log(num)
 
-    setTimeout(fire, 5000)
+    setTimeout(fire, 10)
 }
 
 fire()
