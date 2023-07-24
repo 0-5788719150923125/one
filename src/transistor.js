@@ -24,7 +24,7 @@ let decayRate = calculateDecayRate(config.networkWidth, 64, 768, 0.111, 0.999)
 
 async function trainNetwork() {
     const net = new recurrent.GRU({
-        hiddenLayers: [64, 64, 64],
+        hiddenLayers: new Array(4).fill(128),
         learningRate: config.initialRate,
         decayRate: decayRate,
         clipval: config.clipval,
@@ -142,8 +142,7 @@ async function createBatch(batchSize) {
     const batch = await getRandomData('samples', batchSize)
     return batch.map((string) => {
         const value = JSON.parse(string)
-        const maxLength =
-            Math.floor(Math.random() * config.maxTrainingContextLength - 2) + 2
+        const maxLength = Math.floor(Math.random() * 3) + 2
         while (value.input.length > maxLength) {
             value.input.shift()
         }

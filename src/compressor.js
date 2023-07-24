@@ -38,19 +38,13 @@ parentPort.on('message', async (data) => {
         try {
             if (b.t === 'hiddenLayers') {
                 if (b.k === 'resetGateBias' || b.k === 'updateGateBias') {
-                    // net.model.hiddenLayers[b.l][b.k].weights[b.i] =
-                    //     (Math.random() - 0.5) / 10
-                    net.model.hiddenLayers[b.l][b.k].weights.fill(0)
+                    return
                 }
                 net.model.hiddenLayers[b.l][b.k].weights[b.i] =
                     (b.v + net.model.hiddenLayers[b.l][b.k].weights[b.i]) / 2
-                // net.model.hiddenLayers[b.l][b.k].weights = featherLayer(
-                //     net.model.hiddenLayers[b.l][b.k].weights
-                // )
             } else {
                 net.model[b.t].weights[b.i] =
                     (b.v + net.model[b.t].weights[b.i]) / 2
-                // net.model[b.t].weights = featherLayer(net.model[b.t].weights)
             }
         } catch (err) {
             console.log(err)
