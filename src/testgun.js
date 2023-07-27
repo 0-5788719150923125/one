@@ -15,21 +15,25 @@ const gun = Gun({
     axe: false
 })
 
+const src = gun.get('test')
+
 function fire() {
     const num = Math.floor(Math.random() * 10)
 
-    const neuron = gun.get('neurons').get(num).put(Math.random())
+    const neuron = src.get('neurons').put(Math.random())
 
-    gun.get('grep').get(num).set(neuron)
+    src.get('set').get(num).set(neuron)
 
     console.log(num)
 
-    setTimeout(fire, 10)
+    setTimeout(fire, 1000)
 }
 
 fire()
 
-gun.get('grep')
+src.get('set')
     .map()
     .map()
-    .map((data, key) => console.log([key, data]))
+    .on((data) => {
+        console.log(data)
+    })
