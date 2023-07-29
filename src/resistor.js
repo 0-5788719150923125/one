@@ -32,7 +32,9 @@ const net = new recurrent.GRU({
     regc: config.regc,
     smoothEps: config.smoothEps,
     maxPredictionLength: 333,
-    dataFormatter: new utilities.DataFormatter(['0', '1'])
+    dataFormatter: new utilities.DataFormatter([
+        ...Array.from(config.inputCharacters)
+    ])
 })
 
 parentPort.on('message', async (data) => {
@@ -49,9 +51,7 @@ parentPort.on('message', async (data) => {
                 net.model[b.t].weights[b.i] =
                     (b.v + net.model[b.t].weights[b.i]) / 2
             }
-        } catch (err) {
-            // console.log(err)
-        }
+        } catch {}
         return
     }
     if (data.command !== 'start') return
@@ -79,28 +79,22 @@ parentPort.on('message', async (data) => {
                 { sample: false, temperature: 0.0 },
                 { sample: true, temperature: 0.023 },
                 { sample: true, temperature: 0.123 },
-                { sample: true, temperature: 0.3, expand: true },
-                { sample: true, temperature: 0.7, expand: true },
-                { sample: true, temperature: 1.1, expand: true },
-                { sample: true, temperature: 1.23, expand: true }
+                { sample: true, temperature: 0.3 },
+                { sample: true, temperature: 0.7 },
+                { sample: true, temperature: 1.1 },
+                { sample: true, temperature: 1.23 }
             ]
 
             for (const test of tests) {
-                const question = unicodeToBinary(
-                    `What is your name?${config.wall}1${config.wall}`
-                )
+                const question = `What is your name?${config.wall}1${config.wall}`
+
                 let text =
                     bc.ROOT +
                     net.run(question, test.sample, test.temperature) +
                     ad.TEXT
-                if (
-                    test?.expand &&
-                    text.length > 0 &&
-                    ['0', '1', '2'].includes(text[0]) === true
-                ) {
+                if (text.length > 0 && text.startsWith(' ') !== true) {
                     text =
                         text +
-                        '\n+ ' +
                         bc.FOLD +
                         net.run(
                             question + text,
@@ -113,7 +107,7 @@ parentPort.on('message', async (data) => {
                 console.log(
                     `generating text at temperature of ${test.temperature.toString()}`
                 )
-                console.log(binaryToUnicode(text))
+                console.log(text)
             }
             if (details.iterations === 0) return
             fs.writeFileSync(
@@ -225,16 +219,11 @@ async function createBatch(batchSize) {
         while (value.input.length > maxLength) {
             value.input.shift()
         }
+
         return getRandomSection(
-            dropout(
-                unicodeToBinary(
-                    `${value.input.join(config.wall + '2' + config.wall)}${
-                        config.wall + '1' + config.wall
-                    }${value.output}${config.wall}`
-                ),
-                config.dropout
-            ),
-            config.chunkSize
+            `${value.input.join(config.wall + '2' + config.wall)}${
+                config.wall + '1' + config.wall
+            }${value.output}${config.wall}`
         )
     })
     return batched

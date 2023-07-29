@@ -24,7 +24,7 @@ services:
       REGC: 0.00001
       CLIPVAL: 2.3
       SMOOTHEPS: 1e-11
-      DROPOUT: 0.1
+      DROPOUT: 0
 
   kv:
     image: redis:7.0.5-alpine
