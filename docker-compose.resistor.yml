@@ -22,7 +22,9 @@ services:
       TRAINING_SAMPLES: 1024
       LEARNING_RATE: 0.001
       REGC: 0.00001
-      CLIPVAL: 0.1
+      CLIPVAL: 2.3
+      SMOOTHEPS: 1e-11
+      DROPOUT: 0.1
 
   kv:
     image: redis:7.0.5-alpine

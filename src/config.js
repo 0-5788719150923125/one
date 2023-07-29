@@ -12,7 +12,7 @@ const config = {
     chunkSize: Number(process.env.CHUNK_SIZE) || 23,
     attentionLength: 23,
     initialRate: Number(process.env.LEARNING_RATE) || 0.001,
-    dropout: 0.0,
+    dropout: Number(process.env.DROPOUT) || 0.1,
     regc: Number(process.env.REGC) || 0.00001,
     smoothEps: Number(process.env.SMOOTHEPS) || 1e-8,
     clipval: Number(process.env.CLIPVAL) || 5,

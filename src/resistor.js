@@ -11,7 +11,8 @@ import {
     randomItemFromArray,
     unicodeToBinary,
     binaryToUnicode,
-    chunkString
+    chunkString,
+    dropout
 } from './utils.js'
 import config from './config.js'
 
@@ -85,9 +86,6 @@ parentPort.on('message', async (data) => {
             ]
 
             for (const test of tests) {
-                console.log(
-                    `generating text at temperature of ${test.temperature.toString()}`
-                )
                 const question = unicodeToBinary(
                     `What is your name?${config.wall}1${config.wall}`
                 )
@@ -112,8 +110,10 @@ parentPort.on('message', async (data) => {
                         ad.TEXT
                 }
 
-                console.log(text + ` (${text.length})`)
-                // console.log(binaryToUnicode(text.join('')))
+                console.log(
+                    `generating text at temperature of ${test.temperature.toString()}`
+                )
+                console.log(binaryToUnicode(text))
             }
             if (details.iterations === 0) return
             fs.writeFileSync(
@@ -226,10 +226,13 @@ async function createBatch(batchSize) {
             value.input.shift()
         }
         return getRandomSection(
-            unicodeToBinary(
-                `${value.input.join(config.wall + '2' + config.wall)}${
-                    config.wall + '1' + config.wall
-                }${value.output}${config.wall}`
+            dropout(
+                unicodeToBinary(
+                    `${value.input.join(config.wall + '2' + config.wall)}${
+                        config.wall + '1' + config.wall
+                    }${value.output}${config.wall}`
+                ),
+                config.dropout
             ),
             config.chunkSize
         )
