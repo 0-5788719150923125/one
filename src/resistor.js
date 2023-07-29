@@ -8,7 +8,10 @@ import {
     bc,
     elapsedTimeGenerator,
     getRandomSection,
-    randomItemFromArray
+    randomItemFromArray,
+    unicodeToBinary,
+    binaryToUnicode,
+    chunkString
 } from './utils.js'
 import config from './config.js'
 
@@ -28,9 +31,7 @@ const net = new recurrent.GRU({
     regc: config.regc,
     smoothEps: config.smoothEps,
     maxPredictionLength: 333,
-    dataFormatter: new utilities.DataFormatter(
-        Array.from(config.inputCharacters)
-    )
+    dataFormatter: new utilities.DataFormatter(['0', '1'])
 })
 
 parentPort.on('message', async (data) => {
@@ -87,12 +88,18 @@ parentPort.on('message', async (data) => {
                 console.log(
                     `generating text at temperature of ${test.temperature.toString()}`
                 )
-                const question = `What is your name?${config.wall}1${config.wall}`
+                const question = unicodeToBinary(
+                    `What is your name?${config.wall}1${config.wall}`
+                )
                 let text =
                     bc.ROOT +
                     net.run(question, test.sample, test.temperature) +
                     ad.TEXT
-                if (test?.expand && text.length > 0 && !text.startsWith(' ')) {
+                if (
+                    test?.expand &&
+                    text.length > 0 &&
+                    ['0', '1', '2'].includes(text[0]) === true
+                ) {
                     text =
                         text +
                         '\n+ ' +
@@ -105,7 +112,8 @@ parentPort.on('message', async (data) => {
                         ad.TEXT
                 }
 
-                console.log(text)
+                console.log(text + ` (${text.length})`)
+                // console.log(binaryToUnicode(text.join('')))
             }
             if (details.iterations === 0) return
             fs.writeFileSync(
@@ -210,7 +218,7 @@ async function fireBullets(net) {
 
 async function createBatch(batchSize) {
     const batch = await getRandomData('samples', batchSize)
-    return batch.map((string) => {
+    const batched = batch.map((string) => {
         const value = JSON.parse(string)
         const maxLength =
             Math.floor(Math.random() * config.maxTrainingContextLength - 2) + 2
@@ -218,11 +226,15 @@ async function createBatch(batchSize) {
             value.input.shift()
         }
         return getRandomSection(
-            `${value.input.join(config.wall + '2' + config.wall)}${
-                config.wall + '1' + config.wall
-            }${value.output}${config.wall}`
+            unicodeToBinary(
+                `${value.input.join(config.wall + '2' + config.wall)}${
+                    config.wall + '1' + config.wall
+                }${value.output}${config.wall}`
+            ),
+            config.chunkSize
         )
     })
+    return batched
 }
 
 function* cosineScheduler(max, min, iterations) {
