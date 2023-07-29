@@ -1,5 +1,5 @@
 import fs from 'fs'
-import { recurrent, utilities } from 'brain.js'
+import { NeuralNetwork, recurrent, utilities } from 'brain.js'
 import { TrainStream } from 'train-stream'
 import { getRandomData } from './cache.js'
 import {
@@ -12,38 +12,30 @@ import {
     generateRandomBinaryString,
     getRandomLowNumber,
     getRandomSubset,
-    unicodeToBinary
+    unicodeToBinary,
+    padArray
 } from './utils.js'
 import config from './config.js'
 
-const net_name = process.env.NAME || 'brain1'
+const net_name = process.env.NAME || 'brain'
 
 let currentRate = config.initialRate
 
-let decayRate = calculateDecayRate(config.networkWidth, 64, 768, 0.111, 0.999)
+let batchSize = 32
 
 async function trainNetwork() {
-    const net = new recurrent.GRU({
-        hiddenLayers: new Array(4).fill(128),
-        learningRate: config.initialRate,
-        decayRate: decayRate,
-        clipval: config.clipval,
-        errorThresh: config.errorThresh,
-        regc: 0.00001,
-        smoothEps: 1e-11,
-        maxPredictionLength: 999,
-        dataFormatter: new utilities.DataFormatter(
-            Array.from(config.inputCharacters)
-        )
+    const net = new NeuralNetwork({
+        hiddenLayers: new Array(128).fill(128),
+        binaryThresh: 0.5
     })
 
     let schedule = null
     const timer = elapsedTimeGenerator()
 
     let lastError = 0
-    if (fs.existsSync(`/one/data/${net_name}-RNN.json`)) {
+    if (fs.existsSync(`/one/data/${net_name}.transistor.json`)) {
         net.fromJSON(
-            JSON.parse(fs.readFileSync(`/one/data/${net_name}-RNN.json`))
+            JSON.parse(fs.readFileSync(`/one/data/${net_name}.transistor.json`))
         )
     }
     net.updateTrainingOptions({
@@ -52,32 +44,38 @@ async function trainNetwork() {
     const trainStream = new TrainStream({
         neuralNetwork: net,
         learningRate: config.initialRate,
+        momentum: 0.1,
         errorThresh: config.errorThresh,
         logPeriod: config.logPeriod,
         iterations: config.iterations,
         callbackPeriod: config.callbackPeriod,
-        callback: async () => {
-            const tests = [
-                { sample: false, temperature: 0.0 },
-                { sample: true, temperature: 0.023 },
-                { sample: true, temperature: 0.123 },
-                { sample: true, temperature: 0.3 },
-                { sample: true, temperature: 0.7 }
-            ]
-
-            for (const test of tests) {
-                console.log(
-                    `generating text at temperature of ${test.temperature.toString()}`
+        activation: 'tanh',
+        praxis: 'adam',
+        callback: async (details) => {
+            const input = padArray(
+                unicodeToBinary(
+                    `Who are you?${config.wall}2${config.wall}Where are you from?${config.wall}2${config.wall}What is your name?${config.wall}1${config.wall}`
                 )
-                const text = net.run(
-                    `Who are you?${config.wall}2${config.wall}Where are you from?${config.wall}2${config.wall}What is your name?${config.wall}1${config.wall}`,
-                    test.sample,
-                    test.temperature
-                )
-                console.log(bc.ROOT + binaryToUnicode(text) + ad.TEXT)
-            }
+                    .split('')
+                    .map((char) => {
+                        if (char === '1') return 1
+                        if (char === '0') return -1
+                    }),
+                'both'
+            )
+            const output = Array.from(net.run(input))
+            const text = output.map((val) => {
+                if (val > 0) return '1'
+                else if (val < 0) return '0'
+                else return '010000100100000101000100'
+            })
             fs.writeFileSync(
-                `/one/data/${net_name}-RNN.json`,
+                '/one/data/query.json',
+                JSON.stringify(text, null, 2)
+            )
+            console.log(binaryToUnicode(text.join('')))
+            fs.writeFileSync(
+                `/one/data/${net_name}.transistor.json`,
                 JSON.stringify(net.toJSON(), null, 2)
             )
         },
@@ -100,7 +98,7 @@ async function trainNetwork() {
                 logPeriod: config.logPeriod,
                 callbackPeriod: config.callbackPeriod
             })
-            const batch = await createBatch(config.batchSize)
+            const batch = await createBatch(batchSize)
             readInputs(batch)
         },
         log: async (details) => {
@@ -127,7 +125,7 @@ async function trainNetwork() {
         }
     })
 
-    const batch = await createBatch(config.batchSize)
+    const batch = await createBatch(batchSize)
     readInputs(batch)
 
     function readInputs(data) {
@@ -146,9 +144,38 @@ async function createBatch(batchSize) {
         while (value.input.length > maxLength) {
             value.input.shift()
         }
-        return `${value.input.join(config.wall + '2' + config.wall)}${
-            config.wall + '1' + config.wall
-        }${value.output}${config.wall}`
+        const input = padArray(
+            dropout(
+                unicodeToBinary(
+                    `${value.input.join(config.wall + '2' + config.wall)}${
+                        config.wall
+                    }1${config.wall}`
+                ),
+                0.1
+            )
+                .split('')
+                .map((char) => {
+                    if (char === '1') return 1
+                    if (char === '0') return -1
+                    if (char === '2') return 0
+                }),
+            'both'
+        )
+        const output = padArray(
+            unicodeToBinary(`${value.output}${config.wall}`)
+                .split('')
+                .map((char) => {
+                    if (char === '1') return 1
+                    if (char === '0') return -1
+                }),
+            'right'
+        )
+        fs.writeFileSync('/one/data/input.json', JSON.stringify(input, null, 2))
+        fs.writeFileSync(
+            '/one/data/output.json',
+            JSON.stringify(output, null, 2)
+        )
+        return { input, output }
     })
 }
 

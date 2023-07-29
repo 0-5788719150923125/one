@@ -3,18 +3,18 @@ version: '3.9'
 services:
   brain-0:
     image: ghcr.io/0-5788719150923125/one:latest
-    command: node src/transistor.js
+    command: node --max-old-space-size=${MEMORY:-1024} src/resistor.js
     restart: unless-stopped
     user: 1000:1000
     build:
       context: .
       dockerfile: Dockerfile.${ARCH:-x64}
     volumes:
+      - gun:/gun
       - ./src:/one/src
       - ./data:/one/data
-    networks:
-      - main
     environment:
+      NETWORK_TYPE: transistor
       NETWORK_WIDTH: ${NETWORK_WIDTH:-144}
       NETWORK_DEPTH: ${NETWORK_DEPTH:-6}
       BATCH_SIZE: 6
@@ -23,7 +23,15 @@ services:
       REGC: 0.00001
       CLIPVAL: 23
 
-networks:
-  main:
-    name: one_default
-    external: true
+  kv:
+    image: redis:7.0.5-alpine
+    command: redis-server --save 300 1
+    restart: unless-stopped
+    ports:
+      - 6379:6379
+    volumes:
+      - redis:/data
+
+volumes:
+  gun:
+  redis:

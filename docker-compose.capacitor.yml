@@ -1,7 +1,7 @@
 version: '3.9'
 
 services:
-  brain-1:
+  brain-0:
     image: ghcr.io/0-5788719150923125/one:latest
     command: node --max-old-space-size=${MEMORY:-1024} src/resistor.js
     restart: unless-stopped
@@ -9,25 +9,19 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.${ARCH:-x64}
-    deploy:
-      resources:
-        limits:
-          cpus: ${CPUS:-4.0}
     volumes:
       - gun:/gun
       - ./src:/one/src
       - ./data:/one/data
     environment:
-      NAME: ${NAME:-brain1}
-      FOCUS: ${FOCUS:-trade}
-      NETWORK_WIDTH: ${NETWORK_WIDTH:-144}
-      NETWORK_DEPTH: ${NETWORK_DEPTH:-6}
+      NETWORK_TYPE: capacitor
+      NETWORK_WIDTH: 64
+      NETWORK_DEPTH: 6
       BATCH_SIZE: 6
       TRAINING_SAMPLES: 1024
       LEARNING_RATE: 0.001
       REGC: 0.00001
-      SMOOTHEPS: ${SMOOTHEPS:-1e-8}
-      CLIPVAL: 23
+      CLIPVAL: 5
 
   kv:
     image: redis:7.0.5-alpine

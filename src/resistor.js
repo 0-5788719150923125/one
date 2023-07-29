@@ -11,6 +11,8 @@ import { addData, getDataLength } from './cache.js'
 import { ad, bc, createTrainingData, delay, keys } from './utils.js'
 import config from './config.js'
 
+const networkType = process.env.NETWORK_TYPE || 'compressor'
+
 const totalSamples = await getDataLength('samples')
 console.log(
     'found ' +
@@ -28,7 +30,7 @@ if (totalSamples < config.trainingSamples) {
 
 const gun = Gun({
     peers: ['https://59.src.eco/gun', 'https://95.src.eco/gun'],
-    file: './data/gun',
+    file: '/gun/data',
     localStorage: false,
     radisk: true,
     axe: false
@@ -70,7 +72,7 @@ gun.get('domain')
         }
     })
 
-const worker = new Worker('./src/compressor.js')
+const worker = new Worker(`./src/${networkType}.js`)
 
 const db = gun.get('neuron')
 

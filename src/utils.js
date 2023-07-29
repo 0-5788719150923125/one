@@ -59,6 +59,61 @@ export function binaryToUnicode(binary) {
     return decodedString
 }
 
+export function padArray(
+    arr,
+    paddingType = 'left',
+    desiredLength = 2048,
+    padToken = 0
+) {
+    const currentLength = arr.length
+
+    if (currentLength >= desiredLength) {
+        // Truncate from the start (left) if the array is too long
+        return arr.slice(currentLength - desiredLength)
+    } else {
+        const paddingLength = desiredLength - currentLength
+
+        if (paddingType === 'left') {
+            const paddedArray = new Array(paddingLength)
+                .fill(padToken)
+                .concat(arr)
+            return paddedArray
+        } else if (paddingType === 'right') {
+            const paddedArray = arr.concat(
+                new Array(paddingLength).fill(padToken)
+            )
+            return paddedArray
+        } else if (paddingType === 'both') {
+            const leftPaddingLength = Math.floor(paddingLength / 2)
+            const rightPaddingLength = paddingLength - leftPaddingLength
+            const paddedArray = new Array(leftPaddingLength)
+                .fill(padToken)
+                .concat(arr, new Array(rightPaddingLength).fill(padToken))
+            return paddedArray
+        } else {
+            throw new Error(
+                'Invalid paddingType. Use "left", "right", or "both".'
+            )
+        }
+    }
+}
+
+export function getRandomSection(str, length = 23) {
+    // Check if the provided length is greater than the string length
+    if (length > str.length) {
+        return str
+    }
+
+    // Generate a random index within the valid range
+    const maxIndex = str.length - length
+    const randomIndex = Math.floor(Math.random() * (maxIndex + 1))
+
+    // Extract the random section from the string
+    const randomSection = str.substr(randomIndex, length)
+
+    return randomSection
+}
+
 export function chunkString(str, size = 4) {
     if (!str || typeof str !== 'string') {
         throw new Error('Input must be a non-empty string.')

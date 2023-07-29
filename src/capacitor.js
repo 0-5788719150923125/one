@@ -7,8 +7,7 @@ import {
     ad,
     bc,
     elapsedTimeGenerator,
-    featherLayer,
-    jaggedLayer,
+    getRandomSection,
     randomItemFromArray
 } from './utils.js'
 import config from './config.js'
@@ -57,9 +56,9 @@ parentPort.on('message', async (data) => {
     const timer = elapsedTimeGenerator()
 
     let lastError = 0
-    if (fs.existsSync(`/one/data/${net_name}.compressor.json`)) {
+    if (fs.existsSync(`/one/data/${net_name}.capacitor.json`)) {
         net.fromJSON(
-            JSON.parse(fs.readFileSync(`/one/data/${net_name}.compressor.json`))
+            JSON.parse(fs.readFileSync(`/one/data/${net_name}.capacitor.json`))
         )
     }
     net.updateTrainingOptions({ errorThresh: config.errorThresh })
@@ -84,7 +83,7 @@ parentPort.on('message', async (data) => {
                     `generating text at temperature of ${test.temperature.toString()}`
                 )
                 const text = net.run(
-                    `Who are you?${config.wall}2${config.wall}Where are you from?${config.wall}2${config.wall}What is your name?${config.wall}1${config.wall}`,
+                    `What is your name?${config.wall}1${config.wall}`,
                     test.sample,
                     test.temperature
                 )
@@ -92,7 +91,7 @@ parentPort.on('message', async (data) => {
             }
             if (details.iterations === 0) return
             fs.writeFileSync(
-                `/one/data/${net_name}.compressor.json`,
+                `/one/data/${net_name}.capacitor.json`,
                 JSON.stringify(net.toJSON(), null, 2)
             )
         },
@@ -200,9 +199,11 @@ async function createBatch(batchSize) {
         while (value.input.length > maxLength) {
             value.input.shift()
         }
-        return `${value.input.join(config.wall + '2' + config.wall)}${
-            config.wall + '1' + config.wall
-        }${value.output}${config.wall}`
+        return getRandomSection(
+            `${value.input.join(config.wall + '2' + config.wall)}${
+                config.wall + '1' + config.wall
+            }${value.output}${config.wall}`
+        )
     })
 }
 

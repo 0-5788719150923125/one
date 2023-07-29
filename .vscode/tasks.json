@@ -56,16 +56,22 @@
       "command": "docker compose pull"
     },
     {
-      "label": "docker compose up (dev)",
+      "label": "docker compose up (compressor)",
       "detail": "Start the service in Docker.",
       "type": "shell",
       "command": "docker compose up"
     },
     {
-      "label": "docker compose up (test)",
+      "label": "docker compose up (transistor)",
       "detail": "Start the service in Docker.",
       "type": "shell",
-      "command": "docker compose -f docker-compose.test.yml up"
+      "command": "docker compose -f docker-compose.transistor.yml up"
+    },
+    {
+      "label": "docker compose up (capacitor)",
+      "detail": "Start the service in Docker.",
+      "type": "shell",
+      "command": "docker compose -f docker-compose.capacitor.yml up"
     },
     {
       "label": "docker compose up -d",

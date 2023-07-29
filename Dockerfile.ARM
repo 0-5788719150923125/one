@@ -18,10 +18,10 @@ RUN npm install
 
 COPY src ./src
 
-RUN chown -R node /one && chmod -R 740 /one
+# RUN chown -R node /one && chmod -R 740 /one
 
-USER node
+# USER node
 
-ENV NODE_ENV=production
+# ENV NODE_ENV=production
 
 CMD ["node", "--max-old-space-size=4096", "src/resistor.js"]
