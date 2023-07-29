@@ -3,7 +3,7 @@ version: '3.9'
 services:
   brain-1:
     image: ghcr.io/0-5788719150923125/one:latest
-    command: node --max-old-space-size=${MEMORY:-1024} src/resistor.js
+    command: node --max-old-space-size=${MEMORY:-1024} src/pcb.js
     restart: unless-stopped
     user: 1000:1000
     build:
