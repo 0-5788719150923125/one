@@ -8,11 +8,7 @@ import {
     bc,
     elapsedTimeGenerator,
     getRandomSection,
-    randomItemFromArray,
-    unicodeToBinary,
-    binaryToUnicode,
-    chunkString,
-    dropout
+    randomItemFromArray
 } from './utils.js'
 import config from './config.js'
 
