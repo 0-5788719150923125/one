@@ -22,7 +22,7 @@ function fire() {
 
     // const neuron = src.get('neurons').get(i).put(Math.random())
 
-    src.get('set').set({ i: { i, v: Math.random() } })
+    src.get('set').get(i).set({ i, v: Math.random() })
 
     console.log(i)
 

@@ -151,7 +151,7 @@ export function getRandomSubset(inputString, length) {
     return inputString.substring(startIndex, startIndex + subsetLength)
 }
 
-export function dropout(str, percent = 0.1) {
+export function dropout(str, percent = 0.1, char = '2') {
     let replacedString = ''
 
     for (let i = 0; i < str.length; i++) {
@@ -160,7 +160,7 @@ export function dropout(str, percent = 0.1) {
 
         // Replace the character with '2' if the random value is less than 0.1 (10% probability)
         if (randomValue < percent) {
-            replacedString += '2'
+            replacedString += char
         } else {
             replacedString += str[i]
         }

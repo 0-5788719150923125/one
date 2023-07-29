@@ -6,6 +6,7 @@ import { getRandomData } from './cache.js'
 import {
     ad,
     bc,
+    dropout,
     elapsedTimeGenerator,
     getRandomSection,
     randomItemFromArray
@@ -216,10 +217,14 @@ async function createBatch(batchSize) {
             value.input.shift()
         }
 
-        return getRandomSection(
-            `${value.input.join(config.wall + '2' + config.wall)}${
-                config.wall + '1' + config.wall
-            }${value.output}${config.wall}`
+        return dropout(
+            getRandomSection(
+                `${value.input.join(config.wall + '2' + config.wall)}${
+                    config.wall + '1' + config.wall
+                }${value.output}${config.wall}`
+            ),
+            0.1,
+            '⧍'
         )
     })
     return batched
