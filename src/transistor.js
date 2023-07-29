@@ -18,6 +18,7 @@ import {
 import config from './config.js'
 
 const net_name = process.env.NAME || 'brain'
+const networkType = 'transistor'
 
 let currentRate = config.initialRate
 
@@ -33,9 +34,11 @@ async function trainNetwork() {
     const timer = elapsedTimeGenerator()
 
     let lastError = 0
-    if (fs.existsSync(`/one/data/${net_name}.transistor.json`)) {
+    if (fs.existsSync(`/one/data/${net_name}.${networkType}.json`)) {
         net.fromJSON(
-            JSON.parse(fs.readFileSync(`/one/data/${net_name}.transistor.json`))
+            JSON.parse(
+                fs.readFileSync(`/one/data/${net_name}.${networkType}.json`)
+            )
         )
     }
     net.updateTrainingOptions({
@@ -75,7 +78,7 @@ async function trainNetwork() {
             )
             console.log(binaryToUnicode(text.join('')))
             fs.writeFileSync(
-                `/one/data/${net_name}.transistor.json`,
+                `/one/data/${net_name}.${networkType}.json`,
                 JSON.stringify(net.toJSON(), null, 2)
             )
         },

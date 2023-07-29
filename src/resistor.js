@@ -13,6 +13,7 @@ import {
 import config from './config.js'
 
 const net_name = process.env.NAME || 'brain'
+const networkType = 'resistor'
 
 let currentRate = config.initialRate
 
@@ -56,9 +57,11 @@ parentPort.on('message', async (data) => {
     const timer = elapsedTimeGenerator()
 
     let lastError = 0
-    if (fs.existsSync(`/one/data/${net_name}.capacitor.json`)) {
+    if (fs.existsSync(`/one/data/${net_name}.${networkType}.json`)) {
         net.fromJSON(
-            JSON.parse(fs.readFileSync(`/one/data/${net_name}.capacitor.json`))
+            JSON.parse(
+                fs.readFileSync(`/one/data/${net_name}.${networkType}.json`)
+            )
         )
     }
     net.updateTrainingOptions({ errorThresh: config.errorThresh })
@@ -106,7 +109,7 @@ parentPort.on('message', async (data) => {
             }
             if (details.iterations === 0) return
             fs.writeFileSync(
-                `/one/data/${net_name}.capacitor.json`,
+                `/one/data/${net_name}.${networkType}.json`,
                 JSON.stringify(net.toJSON(), null, 2)
             )
         },
