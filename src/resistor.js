@@ -217,15 +217,16 @@ async function createBatch(batchSize) {
             value.input.shift()
         }
 
-        return dropout(
-            getRandomSection(
-                `${value.input.join(config.wall + '2' + config.wall)}${
-                    config.wall + '1' + config.wall
-                }${value.output}${config.wall}`
-            ),
-            0.1,
-            '⧍'
-        )
+        const section = getRandomSection(
+            `${value.input.join(config.wall + '2' + config.wall)}${
+                config.wall + '1' + config.wall
+            }${value.output}${config.wall}`
+        ).split(`${config.wall}1${config.wall}`)
+        let input = dropout(section[0], 0.1, '⧍')
+        if (section[1]) {
+            input = input + config.wall + '1' + config.wall + section[1]
+        }
+        return input
     })
     return batched
 }
