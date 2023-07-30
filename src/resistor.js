@@ -16,6 +16,8 @@ import config from './config.js'
 const net_name = process.env.NAME || 'brain'
 const networkType = 'resistor'
 
+const wall = config.wall
+
 let currentRate = config.initialRate
 
 let decayRate = calculateDecayRate(config.networkWidth, 64, 768, 0.666, 0.999)
@@ -73,26 +75,23 @@ parentPort.on('message', async (data) => {
         callbackPeriod: config.callbackPeriod,
         callback: async (details) => {
             const tests = [
-                { sample: false, temperature: 0.0 },
-                { sample: true, temperature: 0.123 },
-                { sample: true, temperature: 0.3 },
-                { sample: true, temperature: 0.7 },
-                { sample: true, temperature: 1.1 },
-                { sample: true, temperature: 1.23 }
+                { temperature: 0 },
+                { temperature: 0.123 },
+                { temperature: 0.3 },
+                { temperature: 0.7 },
+                { temperature: 1.1 },
+                { temperature: 1.23 }
             ]
 
             for (const test of tests) {
-                let question = `What is your name?${config.wall}1${config.wall}`
+                const question = `What is your name?${wall}`
+                const sample = test.temperature === 0 ? false : true
 
-                let text = net.run(question, test.sample, test.temperature)
+                let text = net.run(question, sample, test.temperature)
 
                 let append = null
                 if (text.length > 0 && text.startsWith(' ') !== true) {
-                    append = net.run(
-                        question + text,
-                        test.sample,
-                        test.temperature
-                    )
+                    append = net.run(question + text, sample, test.temperature)
                 }
 
                 text = bc.ROOT + text + ad.TEXT
@@ -209,14 +208,13 @@ async function createBatch(batchSize) {
     const batched = batch.map((string) => {
         const value = JSON.parse(string)
         const maxLength =
-            Math.floor(Math.random() * config.maxTrainingContextLength - 2) + 2
+            Math.floor(Math.random() * config.trainContextLength - 2) + 2
+
         while (value.input.length > maxLength) {
             value.input.shift()
         }
 
-        let data = `${value.input.join(config.wall + '2' + config.wall)}${
-            config.wall + '1' + config.wall
-        }${value.output}${config.wall}`
+        let data = `${value.input.join(wall)}${wall}${value.output}${wall}`
 
         return getRandomSection(data)
     })
