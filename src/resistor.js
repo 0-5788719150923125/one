@@ -18,7 +18,7 @@ const networkType = 'resistor'
 
 let currentRate = config.initialRate
 
-let decayRate = calculateDecayRate(config.networkWidth, 64, 768, 0.111, 0.999)
+let decayRate = calculateDecayRate(config.networkWidth, 64, 768, 0.666, 0.999)
 
 const net = new recurrent.GRU({
     hiddenLayers: new Array(config.networkDepth).fill(config.networkWidth),
@@ -82,22 +82,36 @@ parentPort.on('message', async (data) => {
             ]
 
             for (const test of tests) {
-                const question = `What is your name?${config.wall}1${config.wall}`
+                let question = `What is your name?${config.wall}1${config.wall}`
+                let reversed = false
+                if (Math.random() < 0.1) {
+                    question = question.split('').reverse().join('')
+                    reversed = true
+                }
 
-                let text =
-                    bc.ROOT +
-                    net.run(question, test.sample, test.temperature) +
-                    ad.TEXT
+                let text = net.run(question, test.sample, test.temperature)
+
+                let append = null
                 if (text.length > 0 && text.startsWith(' ') !== true) {
-                    text =
-                        text +
-                        bc.FOLD +
-                        net.run(
-                            question + text,
-                            test.sample,
-                            test.temperature
-                        ) +
-                        ad.TEXT
+                    append = net.run(
+                        question + text,
+                        test.sample,
+                        test.temperature
+                    )
+                }
+
+                if (reversed) {
+                    text = bc.ROOT + text.split('').reverse().join('') + ad.TEXT
+                    if (append) {
+                        text =
+                            bc.CORE +
+                            append.split('').reverse().join('') +
+                            ad.TEXT +
+                            text
+                    }
+                } else {
+                    text = bc.ROOT + text + ad.TEXT
+                    if (append) text = text + bc.FOLD + append + ad.TEXT
                 }
 
                 console.log(
@@ -117,7 +131,7 @@ parentPort.on('message', async (data) => {
                 schedule = cosineScheduler(
                     config.errorThresh,
                     config.initialRate,
-                    config.callbackPeriod * 2
+                    config.callbackPeriod * config.cbMultiplier
                 )
                 step = schedule.next()
                 step.value = config.errorThresh
@@ -216,12 +230,19 @@ async function createBatch(batchSize) {
             value.input.shift()
         }
 
-        const section = getRandomSection(
-            `${value.input.join(config.wall + '2' + config.wall)}${
-                config.wall + '1' + config.wall
-            }${value.output}${config.wall}`
-        ).split(`${config.wall}1${config.wall}`)
+        let data = `${value.input.join(config.wall + '2' + config.wall)}${
+            config.wall + '1' + config.wall
+        }${value.output}${config.wall}`
+        if (Math.random() < 0.1) {
+            data = data.split('').reverse().join('')
+        }
+
+        const section = getRandomSection(data).split(
+            `${config.wall}1${config.wall}`
+        )
+
         let input = randomMask(section[0], 0.1, '⧍')
+
         if (section[1]) {
             input = input + config.wall + '1' + config.wall + section[1]
         }

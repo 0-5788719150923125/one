@@ -19,9 +19,11 @@ services:
       NETWORK_DEPTH: 6
       BATCH_SIZE: 6
       LEARNING_RATE: 0.001
+      ERROR_THRESH: 0.000001
       REGC: 0.00001
       CLIPVAL: 4.2
       SMOOTHEPS: 1e-8
+      CB_MULTIPLIER: 2
 
   kv:
     image: redis:7.0.5-alpine
