@@ -6,7 +6,7 @@ import { getRandomData } from './cache.js'
 import {
     ad,
     bc,
-    dropout,
+    randomMask,
     elapsedTimeGenerator,
     getRandomSection,
     randomItemFromArray
@@ -74,7 +74,6 @@ parentPort.on('message', async (data) => {
         callback: async (details) => {
             const tests = [
                 { sample: false, temperature: 0.0 },
-                { sample: true, temperature: 0.023 },
                 { sample: true, temperature: 0.123 },
                 { sample: true, temperature: 0.3 },
                 { sample: true, temperature: 0.7 },
@@ -222,7 +221,7 @@ async function createBatch(batchSize) {
                 config.wall + '1' + config.wall
             }${value.output}${config.wall}`
         ).split(`${config.wall}1${config.wall}`)
-        let input = dropout(section[0], 0.1, '⧍')
+        let input = randomMask(section[0], 0.1, '⧍')
         if (section[1]) {
             input = input + config.wall + '1' + config.wall + section[1]
         }

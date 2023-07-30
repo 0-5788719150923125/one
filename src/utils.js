@@ -151,7 +151,7 @@ export function getRandomSubset(inputString, length) {
     return inputString.substring(startIndex, startIndex + subsetLength)
 }
 
-export function dropout(str, percent = 0.1, char = '2') {
+export function randomMask(str, percent = 0.1, char = '2') {
     let replacedString = ''
 
     for (let i = 0; i < str.length; i++) {

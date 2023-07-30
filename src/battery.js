@@ -12,7 +12,7 @@ import {
     unicodeToBinary,
     binaryToUnicode,
     chunkString,
-    dropout
+    randomMask
 } from './utils.js'
 import config from './config.js'
 
@@ -226,7 +226,7 @@ async function createBatch(batchSize) {
             value.input.shift()
         }
         return getRandomSection(
-            dropout(
+            randomMask(
                 unicodeToBinary(
                     `${value.input.join(config.wall + '2' + config.wall)}${
                         config.wall + '1' + config.wall
