@@ -1,7 +1,7 @@
 version: '3.9'
 
 services:
-  brain-0:
+  brain-00:
     image: ghcr.io/0-5788719150923125/one:latest
     command: node --max-old-space-size=${MEMORY:-1024} src/pcb.js
     restart: unless-stopped

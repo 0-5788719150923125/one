@@ -83,11 +83,6 @@ parentPort.on('message', async (data) => {
 
             for (const test of tests) {
                 let question = `What is your name?${config.wall}1${config.wall}`
-                let reversed = false
-                if (Math.random() < 0.1) {
-                    question = question.split('').reverse().join('')
-                    reversed = true
-                }
 
                 let text = net.run(question, test.sample, test.temperature)
 
@@ -100,19 +95,8 @@ parentPort.on('message', async (data) => {
                     )
                 }
 
-                if (reversed) {
-                    text = bc.ROOT + text.split('').reverse().join('') + ad.TEXT
-                    if (append) {
-                        text =
-                            bc.CORE +
-                            append.split('').reverse().join('') +
-                            ad.TEXT +
-                            text
-                    }
-                } else {
-                    text = bc.ROOT + text + ad.TEXT
-                    if (append) text = text + bc.FOLD + append + ad.TEXT
-                }
+                text = bc.ROOT + text + ad.TEXT
+                if (append) text = text + bc.FOLD + append + ad.TEXT
 
                 console.log(
                     `generating text at temperature of ${test.temperature.toString()}`
@@ -233,20 +217,8 @@ async function createBatch(batchSize) {
         let data = `${value.input.join(config.wall + '2' + config.wall)}${
             config.wall + '1' + config.wall
         }${value.output}${config.wall}`
-        if (Math.random() < 0.1) {
-            data = data.split('').reverse().join('')
-        }
 
-        const section = getRandomSection(data).split(
-            `${config.wall}1${config.wall}`
-        )
-
-        let input = randomMask(section[0], 0.1, '⧍')
-
-        if (section[1]) {
-            input = input + config.wall + '1' + config.wall + section[1]
-        }
-        return input
+        return getRandomSection(data)
     })
     return batched
 }
