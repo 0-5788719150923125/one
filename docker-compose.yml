@@ -9,10 +9,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.${ARCH:-x64}
-    deploy:
-      resources:
-        limits:
-          cpus: ${CPUS:-4.0}
     volumes:
       - gun:/gun
       - ./src:/one/src
@@ -26,7 +22,7 @@ services:
       LEARNING_RATE: 0.001
       REGC: 0.00001
       SMOOTHEPS: ${SMOOTHEPS:-1e-8}
-      CLIPVAL: 23
+      CLIPVAL: ${CLIPVAL:-4.2}
 
   kv:
     image: redis:7.0.5-alpine
