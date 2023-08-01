@@ -11,7 +11,7 @@ import { addData, getDataLength } from './cache.js'
 import { ad, bc, createTrainingData, delay, keys } from './utils.js'
 import config from './config.js'
 
-const networkType = process.env.NETWORK_TYPE || 'compressor'
+const networkType = process.env.NETWORK_TYPE || 'resistor'
 
 const totalSamples = await getDataLength('samples')
 console.log(
