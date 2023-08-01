@@ -20,7 +20,7 @@ const wall = config.wall
 
 let currentRate = config.initialRate
 
-let decayRate = calculateDecayRate(config.networkWidth, 64, 768, 0.666, 0.999)
+let decayRate = calculateDecayRate(config.networkWidth, 64, 768, 0.666, 0.99)
 
 const net = new recurrent.GRU({
     hiddenLayers: new Array(config.networkDepth).fill(config.networkWidth),
@@ -90,7 +90,7 @@ parentPort.on('message', async (data) => {
                 let text = net.run(question, sample, test.temperature)
 
                 let append = null
-                if (text.length > 0 && text.startsWith(' ') !== true) {
+                if (text.length > 0 && !text.startsWith(' ')) {
                     append = net.run(question + text, sample, test.temperature)
                 }
 
@@ -119,7 +119,8 @@ parentPort.on('message', async (data) => {
                 step = schedule.next()
                 step.value = config.errorThresh
             }
-            currentRate = step.value
+            // currentRate = step.value
+            currentRate = config.initialRate
             net.updateTrainingOptions({
                 learningRate: currentRate,
                 iterations: config.iterations,
