@@ -94,7 +94,7 @@ async function fireBullet(bullet) {
 worker.postMessage({ command: 'start' })
 worker.on('message', async (data) => {
     if (data.bullet) {
-        return await fireBullet(data.bullet)
+        // return await fireBullet(data.bullet)
     }
     if (data.command === 'failed') {
         return worker.postMessage({ command: 'start' })

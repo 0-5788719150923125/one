@@ -1,7 +1,7 @@
 version: '3.9'
 
 services:
-  brain-00:
+  brain-0:
     image: ghcr.io/0-5788719150923125/one:latest
     command: node --max-old-space-size=${MEMORY:-1024} src/pcb.js
     restart: unless-stopped
@@ -14,16 +14,20 @@ services:
       - ./src:/one/src
       - ./data:/one/data
     environment:
+      MEMORY: 4096
       NETWORK_TYPE: resistor
-      NETWORK_WIDTH: 64
-      NETWORK_DEPTH: 6
-      BATCH_SIZE: 6
+      NETWORK_WIDTH: 96
+      NETWORK_DEPTH: 9
+      BATCH_SIZE: 3
       LEARNING_RATE: 0.001
       ERROR_THRESH: 0.000001
-      REGC: 0.00001
+      REGC: 0.0001
       CLIPVAL: 4.2
       SMOOTHEPS: 1e-8
-      CB_MULTIPLIER: 2
+      SECTION_SIZE: 59
+      PREDICTION_LENGTH: 23
+      DECAY_RATE: 0.9
+      MASK_CHANCE: 0.1
 
   kv:
     image: redis:7.0.5-alpine

@@ -7,9 +7,12 @@ import {
     ad,
     bc,
     randomMask,
+    maskTokens,
     elapsedTimeGenerator,
     getRandomSection,
-    randomItemFromArray
+    randomItemFromArray,
+    unicodeToBinary,
+    binaryToUnicode
 } from './utils.js'
 import config from './config.js'
 
@@ -20,9 +23,11 @@ const wall = config.wall
 
 let currentRate = config.initialRate
 
-let decayRate = calculateDecayRate(config.networkWidth, 64, 768, 0.666, 0.99)
+const decayRate = Number(process.env.DECAY_RATE) || 0.999
+const sectionSize = Number(process.env.SECTION_SIZE) || 23
+const maskChance = Number(process.env.MASK_CHANCE) || 0.0
 
-const net = new recurrent.GRU({
+const net = new recurrent.RNN({
     hiddenLayers: new Array(config.networkDepth).fill(config.networkWidth),
     learningRate: config.initialRate,
     decayRate: decayRate,
@@ -30,9 +35,9 @@ const net = new recurrent.GRU({
     errorThresh: config.errorThresh,
     regc: config.regc,
     smoothEps: config.smoothEps,
-    maxPredictionLength: 333,
+    maxPredictionLength: Number(process.env.PREDICTION_LENGTH) || 333,
     dataFormatter: new utilities.DataFormatter([
-        ...Array.from(config.inputCharacters)
+        ...Array.from(`¶abcdefghijklmnopqrstuvwxyz,.?!' `)
     ])
 })
 
@@ -54,7 +59,7 @@ parentPort.on('message', async (data) => {
         return
     }
     if (data.command !== 'start') return
-    let schedule = null
+
     const timer = elapsedTimeGenerator()
 
     let lastError = 0
@@ -84,22 +89,32 @@ parentPort.on('message', async (data) => {
             ]
 
             for (const test of tests) {
-                const question = `What is your name?${wall}`
+                const question = `What is your name?${wall}`.toLowerCase()
                 const sample = test.temperature === 0 ? false : true
+
+                console.log(
+                    `generating text at temperature of ${test.temperature.toString()}`
+                )
 
                 let text = net.run(question, sample, test.temperature)
 
                 let append = null
-                if (text.length > 0 && !text.startsWith(' ')) {
-                    append = net.run(question + text, sample, test.temperature)
+                if (text.length > 0 && text.startsWith(' ') !== true) {
+                    let count = 0
+                    while (count < 10) {
+                        count++
+                        append = net.run(
+                            question + text,
+                            sample,
+                            test.temperature
+                        )
+                        if (append && append !== ' ') count = 10
+                    }
                 }
 
                 text = bc.ROOT + text + ad.TEXT
                 if (append) text = text + bc.FOLD + append + ad.TEXT
 
-                console.log(
-                    `generating text at temperature of ${test.temperature.toString()}`
-                )
                 console.log(text)
             }
             if (details.iterations === 0) return
@@ -109,17 +124,6 @@ parentPort.on('message', async (data) => {
             )
         },
         floodCallback: async () => {
-            let step = schedule?.next()
-            if (schedule === null || step.done === true) {
-                schedule = cosineScheduler(
-                    config.errorThresh,
-                    config.initialRate,
-                    config.callbackPeriod * config.cbMultiplier
-                )
-                step = schedule.next()
-                step.value = config.errorThresh
-            }
-            // currentRate = step.value
             currentRate = config.initialRate
             net.updateTrainingOptions({
                 learningRate: currentRate,
@@ -128,7 +132,7 @@ parentPort.on('message', async (data) => {
                 logPeriod: config.logPeriod,
                 callbackPeriod: config.callbackPeriod
             })
-            await fireBullets(net)
+            // await fireBullets(net)
             const batch = await createBatch(config.batchSize)
             readInputs(batch)
         },
@@ -217,30 +221,11 @@ async function createBatch(batchSize) {
 
         let data = `${value.input.join(wall)}${wall}${value.output}${wall}`
 
-        return getRandomSection(data)
+        return maskTokens(
+            getRandomSection(data, sectionSize),
+            maskChance,
+            '2'
+        ).toLowerCase()
     })
     return batched
-}
-
-function* cosineScheduler(max, min, iterations) {
-    const range = max - min
-    const halfIterations = iterations / 2
-
-    for (let i = 0; i < iterations; i++) {
-        const cosValue = Math.cos((Math.PI * i) / halfIterations)
-        const currentValue = min + 0.5 * range * (1 + cosValue)
-        yield currentValue
-    }
-}
-
-function calculateDecayRate(integerValue, minInt, maxInt, min, max) {
-    if (integerValue <= minInt) {
-        return max
-    } else if (integerValue >= maxInt) {
-        return min
-    } else {
-        const slope = (max - min) / (minInt - maxInt)
-        const intercept = max - slope * minInt
-        return slope * integerValue + intercept
-    }
 }
