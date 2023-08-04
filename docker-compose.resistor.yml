@@ -16,7 +16,7 @@ services:
     environment:
       MEMORY: 4096
       NETWORK_TYPE: resistor
-      USE_GUN: 'false'
+      USE_GUN: 'true'
       NETWORK_WIDTH: 64
       NETWORK_DEPTH: 3
       BATCH_SIZE: 256
