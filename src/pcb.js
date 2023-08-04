@@ -38,7 +38,8 @@ const gun = Gun({
 })
 
 const context = []
-gun.get('domain')
+gun.get('src')
+    .get('bullets')
     .get(config.focus)
     .on(async (node) => {
         try {

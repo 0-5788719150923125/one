@@ -19,7 +19,7 @@ const config = {
     errorThresh: Number(process.env.ERROR_THRESH) || 0.000001,
     cbMultiplier: Number(process.env.CB_MULTIPLIER) || 2,
     logPeriod: 1,
-    callbackPeriod: 100,
+    callbackPeriod: Number(process.env.CB_PERIOD) || 100,
     wall: '¶',
     inputCharacters: `0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,;:.?!()[]"'\`$@#%^&*=+-{}\\/¶ `
 }

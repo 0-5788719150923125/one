@@ -39,7 +39,7 @@ const net = new recurrent.GRU({
     smoothEps: config.smoothEps,
     maxPredictionLength: Number(process.env.PREDICTION_LENGTH) || 333,
     dataFormatter: new utilities.DataFormatter([
-        ...Array.from(`¶abcdefghijklmnopqrstuvwxyz,.?!' `)
+        ...Array.from(config.inputCharacters)
     ])
 })
 
@@ -119,7 +119,7 @@ parentPort.on('message', async (data) => {
                 text = bc.ROOT + text + ad.TEXT
                 if (append) text = text + bc.FOLD + append + ad.TEXT
 
-                console.log(text)
+                console.log(binaryToUnicode(text))
             }
             if (details.iterations === 0) return
             fs.writeFileSync(
@@ -135,10 +135,7 @@ parentPort.on('message', async (data) => {
                 logPeriod: config.logPeriod,
                 callbackPeriod: config.callbackPeriod
             })
-            if (useGun === 'true') {
-                console.log('firing bullets')
-                await fireBullets(net)
-            }
+            if (useGun === 'true') await fireBullets(net)
             const batch = await createBatch(config.batchSize)
             readInputs(batch)
         },

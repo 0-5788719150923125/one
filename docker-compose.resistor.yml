@@ -16,7 +16,7 @@ services:
     environment:
       MEMORY: 4096
       NETWORK_TYPE: resistor
-      USE_GUN: 'true'
+      USE_GUN: 'false'
       NETWORK_WIDTH: 64
       NETWORK_DEPTH: 3
       BATCH_SIZE: 256
@@ -26,10 +26,11 @@ services:
       REGC: 0.000001
       CLIPVAL: 6.66
       SMOOTHEPS: 1e-8
-      SECTION_SIZE: 10000000
-      PREDICTION_LENGTH: 23
+      SECTION_SIZE: 100000000
+      PREDICTION_LENGTH: 333
       DECAY_RATE: 0.999
       MASK_CHANCE: 0.0
+      CB_PERIOD: 10
 
   kv:
     image: redis:7.0.5-alpine
