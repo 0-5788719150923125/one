@@ -119,7 +119,7 @@ parentPort.on('message', async (data) => {
                 text = bc.ROOT + text + ad.TEXT
                 if (append) text = text + bc.FOLD + append + ad.TEXT
 
-                console.log(binaryToUnicode(text))
+                console.log(text)
             }
             if (details.iterations === 0) return
             fs.writeFileSync(
