@@ -18,11 +18,9 @@ const gun = Gun({
 const src = gun.get('test')
 
 function fire() {
-    const i = Math.floor(Math.random() * 10)
+    const i = Math.floor(Math.random() * 1000000)
 
-    // const neuron = src.get('neurons').get(i).put(Math.random())
-
-    src.get('set').get(i).set({ i, v: Math.random() })
+    src.get('neurons').put({ i, v: Math.random() })
 
     console.log(i)
 
@@ -31,9 +29,8 @@ function fire() {
 
 fire()
 
-src.get('set')
-    .map()
-    .map()
-    .once((data, key) => {
+src.get('neurons')
+    // .map()
+    .on((data, key) => {
         console.log([data.i, data.v])
     })

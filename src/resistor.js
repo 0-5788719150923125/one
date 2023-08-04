@@ -12,7 +12,8 @@ import {
     getRandomSection,
     randomItemFromArray,
     unicodeToBinary,
-    binaryToUnicode
+    binaryToUnicode,
+    jaggedLayer
 } from './utils.js'
 import config from './config.js'
 
@@ -27,7 +28,7 @@ const decayRate = Number(process.env.DECAY_RATE) || 0.999
 const sectionSize = Number(process.env.SECTION_SIZE) || 23
 const maskChance = Number(process.env.MASK_CHANCE) || 0.0
 
-const net = new recurrent.RNN({
+const net = new recurrent.GRU({
     hiddenLayers: new Array(config.networkDepth).fill(config.networkWidth),
     learningRate: config.initialRate,
     decayRate: decayRate,
@@ -83,9 +84,11 @@ parentPort.on('message', async (data) => {
                 { temperature: 0 },
                 { temperature: 0.123 },
                 { temperature: 0.3 },
-                { temperature: 0.7 },
+                { temperature: 0.59 },
+                { temperature: 0.8 },
                 { temperature: 1.1 },
-                { temperature: 1.23 }
+                { temperature: 1.23 },
+                { temperature: 1.59 }
             ]
 
             for (const test of tests) {
@@ -124,9 +127,8 @@ parentPort.on('message', async (data) => {
             )
         },
         floodCallback: async () => {
-            currentRate = config.initialRate
             net.updateTrainingOptions({
-                learningRate: currentRate,
+                learningRate: config.initialRate,
                 iterations: config.iterations,
                 errorThresh: config.errorThresh,
                 logPeriod: config.logPeriod,

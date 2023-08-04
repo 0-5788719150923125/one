@@ -2,10 +2,10 @@
   "name": "one",
   "version": "1.1.1",
   "description": "a federated neural network",
-  "main": "src/resistor.js",
+  "main": "src/pcb.js",
   "type": "module",
   "scripts": {
-    "start": "node src/resistor.js"
+    "start": "node src/pcb.js"
   },
   "repository": {
     "type": "git",
