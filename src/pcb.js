@@ -8,10 +8,11 @@ import 'gun/lib/rindexed.js'
 import 'gun/lib/webrtc.js'
 import 'gun/lib/yson.js'
 import { addData, getDataLength } from './cache.js'
-import { ad, bc, createTrainingData, delay, keys } from './utils.js'
+import { ad, bc, createTrainingData, delay } from './utils.js'
 import config from './config.js'
 
 const networkType = process.env.NETWORK_TYPE || 'resistor'
+const useGun = process.env.USE_GUN || 'false'
 
 const totalSamples = await getDataLength('samples')
 console.log(
@@ -94,7 +95,7 @@ async function fireBullet(bullet) {
 worker.postMessage({ command: 'start' })
 worker.on('message', async (data) => {
     if (data.bullet) {
-        // return await fireBullet(data.bullet)
+        if (useGun === 'true') return await fireBullet(data.bullet)
     }
     if (data.command === 'failed') {
         return worker.postMessage({ command: 'start' })
@@ -122,10 +123,22 @@ function registerListeners(db, config) {
             } catch {}
         })
 
+    const keys = [
+        'updateGateInputMatrix',
+        'updateGateHiddenMatrix',
+        // 'updateGateBias',
+        'resetGateInputMatrix',
+        'resetGateHiddenMatrix',
+        // 'resetGateBias',
+        'cellWriteInputMatrix',
+        'cellWriteHiddenMatrix',
+        'cellWriteBias'
+    ]
+
     const layers = db.get('hiddenLayers')
     for (let i = 0; i < config.networkDepth; i++) {
         const layer = layers.get(i)
-        for (const j of keys.GRU) {
+        for (const j of keys) {
             const key = layer.get(j)
             let columns = config.networkWidth
             if (j.endsWith('InputMatrix') && i === 0) {

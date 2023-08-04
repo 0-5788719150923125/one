@@ -16,16 +16,17 @@ services:
     environment:
       MEMORY: 4096
       NETWORK_TYPE: resistor
+      USE_GUN: 'true'
       NETWORK_WIDTH: 64
       NETWORK_DEPTH: 3
       BATCH_SIZE: 256
-      TRAIN_CONTEXT_LENGTH: 5
+      TRAIN_CONTEXT_LENGTH: 9
       LEARNING_RATE: 0.001
       ERROR_THRESH: 0.000001
       REGC: 0.000001
       CLIPVAL: 6.66
       SMOOTHEPS: 1e-8
-      SECTION_SIZE: 59
+      SECTION_SIZE: 10000000
       PREDICTION_LENGTH: 23
       DECAY_RATE: 0.999
       MASK_CHANCE: 0.0

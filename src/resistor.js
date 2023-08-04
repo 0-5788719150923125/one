@@ -19,6 +19,7 @@ import config from './config.js'
 
 const net_name = process.env.NAME || 'brain'
 const networkType = 'resistor'
+const useGun = process.env.USE_GUN || 'false'
 
 const wall = config.wall
 
@@ -47,9 +48,9 @@ parentPort.on('message', async (data) => {
         const b = data.bullet
         try {
             if (b.t === 'hiddenLayers') {
-                if (b.k === 'resetGateBias' || b.k === 'updateGateBias') {
-                    return
-                }
+                // if (b.k === 'resetGateBias' || b.k === 'updateGateBias') {
+                //     return
+                // }
                 net.model.hiddenLayers[b.l][b.k].weights[b.i] =
                     (b.v + net.model.hiddenLayers[b.l][b.k].weights[b.i]) / 2
             } else {
@@ -134,7 +135,10 @@ parentPort.on('message', async (data) => {
                 logPeriod: config.logPeriod,
                 callbackPeriod: config.callbackPeriod
             })
-            // await fireBullets(net)
+            if (useGun === 'true') {
+                console.log('firing bullets')
+                await fireBullets(net)
+            }
             const batch = await createBatch(config.batchSize)
             readInputs(batch)
         },

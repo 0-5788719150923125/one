@@ -10,20 +10,6 @@ export const ad = {
     TEXT: '\x1b[0m'
 }
 
-export const keys = {
-    GRU: [
-        'updateGateInputMatrix',
-        'updateGateHiddenMatrix',
-        'updateGateBias',
-        'resetGateInputMatrix',
-        'resetGateHiddenMatrix',
-        'resetGateBias',
-        'cellWriteInputMatrix',
-        'cellWriteHiddenMatrix',
-        'cellWriteBias'
-    ]
-}
-
 export const delay = (ms) => new Promise((res) => setTimeout(res, ms))
 
 const zero = 0n
@@ -317,32 +303,32 @@ export async function accumulateGradients(myNet, urBit) {
     }
 }
 
-function mergeHiddenLayers(myNet, urBit) {
-    const hiddenLayers = []
-    try {
-        for (let i = 0; i < myNet.hiddenLayers.length; i++) {
-            const layer = {}
-            for (const key of keys.GRU) {
-                layer[key] = {
-                    rows: myNet.hiddenLayers[i][key].rows,
-                    columns: myNet.hiddenLayers[i][key].columns,
-                    weights: averageArrays(
-                        myNet.hiddenLayers[i][key].weights,
-                        urBit.hiddenLayers[i][key].weights
-                    ).slice(
-                        0,
-                        myNet.hiddenLayers[i][key].rows *
-                            myNet.hiddenLayers[i][key].columns
-                    )
-                }
-            }
-            hiddenLayers.push(layer)
-        }
-    } catch {
-        // pass
-    }
-    return hiddenLayers
-}
+// function mergeHiddenLayers(myNet, urBit) {
+//     const hiddenLayers = []
+//     try {
+//         for (let i = 0; i < myNet.hiddenLayers.length; i++) {
+//             const layer = {}
+//             for (const key of keys.GRU) {
+//                 layer[key] = {
+//                     rows: myNet.hiddenLayers[i][key].rows,
+//                     columns: myNet.hiddenLayers[i][key].columns,
+//                     weights: averageArrays(
+//                         myNet.hiddenLayers[i][key].weights,
+//                         urBit.hiddenLayers[i][key].weights
+//                     ).slice(
+//                         0,
+//                         myNet.hiddenLayers[i][key].rows *
+//                             myNet.hiddenLayers[i][key].columns
+//                     )
+//                 }
+//             }
+//             hiddenLayers.push(layer)
+//         }
+//     } catch {
+//         // pass
+//     }
+//     return hiddenLayers
+// }
 
 export function dataFormatter(allowedChars) {
     const obj = {
@@ -362,31 +348,35 @@ export function dataFormatter(allowedChars) {
     return obj
 }
 
-export async function reconstructNetwork(network) {
-    network.input.weights = convertObjectToArray(network.input.weights).slice(
-        0,
-        network.input.rows * network.input.columns
-    )
-    for (let i = 0; i < network.options.hiddenLayers.length; i++) {
-        for (const key of keys.GRU) {
-            network.hiddenLayers[i][key].weights = convertObjectToArray(
-                network.hiddenLayers[i][key].weights
-            ).slice(
-                0,
-                network.hiddenLayers[i][key].rows *
-                    network.hiddenLayers[i][key].columns
-            )
-        }
-    }
-    network.outputConnector.weights = convertObjectToArray(
-        network.outputConnector.weights
-    ).slice(0, network.outputConnector.rows * network.outputConnector.columns)
-    network.output.weights = convertObjectToArray(network.output.weights).slice(
-        0,
-        network.output.rows * network.output.columns
-    )
-    return network
+export function randomBetween(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min)
 }
+
+// export async function reconstructNetwork(network) {
+//     network.input.weights = convertObjectToArray(network.input.weights).slice(
+//         0,
+//         network.input.rows * network.input.columns
+//     )
+//     for (let i = 0; i < network.options.hiddenLayers.length; i++) {
+//         for (const key of keys.GRU) {
+//             network.hiddenLayers[i][key].weights = convertObjectToArray(
+//                 network.hiddenLayers[i][key].weights
+//             ).slice(
+//                 0,
+//                 network.hiddenLayers[i][key].rows *
+//                     network.hiddenLayers[i][key].columns
+//             )
+//         }
+//     }
+//     network.outputConnector.weights = convertObjectToArray(
+//         network.outputConnector.weights
+//     ).slice(0, network.outputConnector.rows * network.outputConnector.columns)
+//     network.output.weights = convertObjectToArray(network.output.weights).slice(
+//         0,
+//         network.output.rows * network.output.columns
+//     )
+//     return network
+// }
 
 export function instantiateGRUNetwork(config) {
     return {
