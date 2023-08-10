@@ -84,10 +84,10 @@ src.get('bullets')
 
 const worker = new Worker(`./src/${networkType}.js`)
 
-// const db = src.get('brain')
+const db = src.get('brain')
 
 setInterval(() => {
-    getRandomNeuron(config)
+    getRandomNeuron(db, config)
 }, config.recieveInterval)
 
 async function fireSynapse(s) {
@@ -121,8 +121,7 @@ setInterval(() => {
     integrateNeuron()
 }, config.recieveInterval / 2)
 
-function getRandomNeuron(config) {
-    const db = gun.get('src').get('brain')
+function getRandomNeuron(db, config) {
     const t = randomValueFromArray([
         'input',
         'output',
@@ -170,7 +169,7 @@ function getRandomNeuron(config) {
         neuron = db.get(t).get(i).get(k).get('weights').get(n)
     }
 
-    neuron.once((v) => {
+    neuron.once(async (v) => {
         if (isNaN(parseInt(v))) return
         neurons.push({ t, i, k, n, v })
     })
