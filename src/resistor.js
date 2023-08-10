@@ -45,10 +45,10 @@ parentPort.on('message', async (data) => {
         try {
             if (b.t === 'hiddenLayers') {
                 net.model.hiddenLayers[b.i][b.k].weights[b.n] =
-                    (b.v + net.model.hiddenLayers[b.i][b.k].weights[b.n]) / 2
+                    (net.model.hiddenLayers[b.i][b.k].weights[b.n] + b.v) / 2
             } else {
                 net.model[b.t].weights[b.i] =
-                    (b.v + net.model[b.t].weights[b.i]) / 2
+                    (net.model[b.t].weights[b.i] + b.v) / 2
             }
         } catch {}
         return

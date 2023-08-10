@@ -161,10 +161,8 @@ function getRandomNeuron(db, config) {
 
     neuron.once(async (v) => {
         if (isNaN(v)) return
-        const bullet = { t, i, k, n, v }
-        console.log(bullet)
         worker.postMessage({
-            b: bullet
+            b: { t, i, k, n, v }
         })
     })
 }
