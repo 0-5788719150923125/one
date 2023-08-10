@@ -21,7 +21,8 @@ const config = {
     logPeriod: 1,
     callbackPeriod: Number(process.env.CB_PERIOD) || 100,
     wall: '¶',
-    inputCharacters: `0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,;:.?!()[]"'\`$@#%^&*=+-{}\\/¶ `
+    inputCharacters: `0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,;:.?!()[]"'\`$@#%^&*=+-{}\\/¶ `,
+    recieveInterval: Number(process.env.RECIEVE_INTERVAL) || 1000
 }
 
 export default config

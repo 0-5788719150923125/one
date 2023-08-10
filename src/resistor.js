@@ -6,14 +6,10 @@ import { getRandomData } from './cache.js'
 import {
     ad,
     bc,
-    randomMask,
     maskTokens,
     elapsedTimeGenerator,
     getRandomSection,
-    randomItemFromArray,
-    unicodeToBinary,
-    binaryToUnicode,
-    jaggedLayer
+    randomItemFromArray
 } from './utils.js'
 import config from './config.js'
 
@@ -44,15 +40,12 @@ const net = new recurrent.GRU({
 })
 
 parentPort.on('message', async (data) => {
-    if (data.bullet) {
-        const b = data.bullet
+    if (data.b) {
+        const b = data.b
         try {
             if (b.t === 'hiddenLayers') {
-                // if (b.k === 'resetGateBias' || b.k === 'updateGateBias') {
-                //     return
-                // }
-                net.model.hiddenLayers[b.l][b.k].weights[b.i] =
-                    (b.v + net.model.hiddenLayers[b.l][b.k].weights[b.i]) / 2
+                net.model.hiddenLayers[b.i][b.k].weights[b.n] =
+                    (b.v + net.model.hiddenLayers[b.i][b.k].weights[b.n]) / 2
             } else {
                 net.model[b.t].weights[b.i] =
                     (b.v + net.model[b.t].weights[b.i]) / 2
@@ -122,6 +115,7 @@ parentPort.on('message', async (data) => {
                 console.log(text)
             }
             if (details.iterations === 0) return
+            if (useGun === 'true') await fireBullets(net)
             fs.writeFileSync(
                 `/one/data/${net_name}.${networkType}.json`,
                 JSON.stringify(net.toJSON(), null, 2)
@@ -135,7 +129,6 @@ parentPort.on('message', async (data) => {
                 logPeriod: config.logPeriod,
                 callbackPeriod: config.callbackPeriod
             })
-            if (useGun === 'true') await fireBullets(net)
             const batch = await createBatch(config.batchSize)
             readInputs(batch)
         },
@@ -177,33 +170,33 @@ parentPort.on('message', async (data) => {
 async function fireBullets(net) {
     const input = randomItemFromArray(net.model.input.weights)
     parentPort.postMessage({
-        bullet: { t: 'input', i: input.key, v: input.value }
+        b: { t: 'input', i: input.key, v: input.value }
     })
     const output = randomItemFromArray(net.model.output.weights)
     parentPort.postMessage({
-        bullet: { t: 'output', i: output.key, v: output.value }
+        b: { t: 'output', i: output.key, v: output.value }
     })
     const outputConnector = randomItemFromArray(
         net.model.outputConnector.weights
     )
     parentPort.postMessage({
-        bullet: {
+        b: {
             t: 'outputConnector',
             i: outputConnector.key,
             v: outputConnector.value
         }
     })
     for (let i = 0; i < net.model.hiddenLayers.length; i++) {
-        for (const key of Object.keys(net.model.hiddenLayers[i])) {
+        for (const k of Object.keys(net.model.hiddenLayers[i])) {
             const item = randomItemFromArray(
-                net.model.hiddenLayers[i][key].weights
+                net.model.hiddenLayers[i][k].weights
             )
             parentPort.postMessage({
-                bullet: {
+                b: {
                     t: 'hiddenLayers',
-                    l: i,
-                    k: key,
-                    i: item.key,
+                    i,
+                    k,
+                    n: item.key,
                     v: item.value
                 }
             })

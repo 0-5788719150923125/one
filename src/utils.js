@@ -177,6 +177,13 @@ export function randomItemFromArray(array) {
     return { key, value }
 }
 
+export function randomValueFromArray(array, biasFactor = 1) {
+    const randomIndex = Math.floor(
+        Math.pow(Math.random(), biasFactor) * array.length
+    )
+    return array[randomIndex]
+}
+
 export function createTrainingData() {
     return {
         input: [faker.hacker.phrase()],
