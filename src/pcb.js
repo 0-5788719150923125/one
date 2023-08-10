@@ -111,6 +111,16 @@ worker.on('message', async (data) => {
     }
 })
 
+const neurons = []
+function integrateNeuron() {
+    if (neurons.length > 0) {
+        worker.postMessage({ s: neurons.pop() })
+    }
+}
+setInterval(() => {
+    integrateNeuron()
+}, config.recieveInterval / 2)
+
 function getRandomNeuron(db, config) {
     const t = randomValueFromArray([
         'input',
@@ -161,10 +171,6 @@ function getRandomNeuron(db, config) {
 
     neuron.once(async (v) => {
         if (isNaN(parseInt(v))) return
-        integrateNeuron({ t, i, k, n, v })
+        neurons.push({ t, i, k, n, v })
     })
-}
-
-async function integrateNeuron(s) {
-    worker.postMessage({ s })
 }
