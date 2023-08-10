@@ -115,7 +115,7 @@ parentPort.on('message', async (data) => {
                 console.log(text)
             }
             if (details.iterations === 0) return
-            if (useGun === 'true') await fireBullets(net)
+            if (useGun === 'true') await fireSynapses(net)
             fs.writeFileSync(
                 `/one/data/${net_name}.${networkType}.json`,
                 JSON.stringify(net.toJSON(), null, 2)
@@ -167,20 +167,20 @@ parentPort.on('message', async (data) => {
     }
 })
 
-async function fireBullets(net) {
+async function fireSynapses(net) {
     const input = randomItemFromArray(net.model.input.weights)
     parentPort.postMessage({
-        b: { t: 'input', i: input.key, v: input.value }
+        s: { t: 'input', i: input.key, v: input.value }
     })
     const output = randomItemFromArray(net.model.output.weights)
     parentPort.postMessage({
-        b: { t: 'output', i: output.key, v: output.value }
+        s: { t: 'output', i: output.key, v: output.value }
     })
     const outputConnector = randomItemFromArray(
         net.model.outputConnector.weights
     )
     parentPort.postMessage({
-        b: {
+        s: {
             t: 'outputConnector',
             i: outputConnector.key,
             v: outputConnector.value
@@ -192,7 +192,7 @@ async function fireBullets(net) {
                 net.model.hiddenLayers[i][k].weights
             )
             parentPort.postMessage({
-                b: {
+                s: {
                     t: 'hiddenLayers',
                     i,
                     k,

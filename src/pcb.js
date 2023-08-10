@@ -90,21 +90,21 @@ setInterval(() => {
     getRandomNeuron(db, config)
 }, config.recieveInterval)
 
-async function fireBullet(b) {
+async function fireSynapse(s) {
     await delay(Math.random() * 5000)
     let target = null
-    if (b.t === 'hiddenLayers') {
-        target = db.get(b.t).get(b.i).get(b.k).get('weights').get(b.n)
+    if (s.t === 'hiddenLayers') {
+        target = db.get(s.t).get(s.i).get(s.k).get('weights').get(s.n)
     } else {
-        target = db.get(b.t).get('weights').get(b.i)
+        target = db.get(s.t).get('weights').get(s.i)
     }
-    target.put(b.v)
+    target.put(s.v)
 }
 
 worker.postMessage({ command: 'start' })
 worker.on('message', async (data) => {
     if (data.b) {
-        if (useGun === 'true') return await fireBullet(data.b)
+        if (useGun === 'true') return await fireSynapse(data.b)
     }
     if (data.command === 'failed') {
         return worker.postMessage({ command: 'start' })
@@ -160,9 +160,11 @@ function getRandomNeuron(db, config) {
     }
 
     neuron.once(async (v) => {
-        if (isNaN(v)) return
-        worker.postMessage({
-            b: { t, i, k, n, v }
-        })
+        if (isNaN(parseInt(v))) return
+        integrateNeuron({ t, i, k, n, v })
     })
+}
+
+async function integrateNeuron(s) {
+    worker.postMessage({ s })
 }
