@@ -30,7 +30,7 @@ services:
       PREDICTION_LENGTH: 23
       DECAY_RATE: 0.999
       MASK_CHANCE: 0.0
-      CB_PERIOD: 10
+      CB_PERIOD: 1
 
   kv:
     image: redis:7.0.5-alpine
