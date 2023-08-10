@@ -84,44 +84,32 @@ src.get('bullets')
 
 const worker = new Worker(`./src/${networkType}.js`)
 
-const db = src.get('brain')
+const brain = src.get('brain')
 
 setInterval(() => {
-    getRandomNeuron(db, config)
+    getRandomNeuron(brain, config)
 }, config.recieveInterval)
 
 async function fireSynapse(s) {
     await delay(Math.random() * 5000)
-    let target = null
+    let target = `${s.t}/weights/${s.i}`
     if (s.t === 'hiddenLayers') {
-        target = db.get(s.t).get(s.i).get(s.k).get('weights').get(s.n)
-    } else {
-        target = db.get(s.t).get('weights').get(s.i)
+        target = `${s.t}/${s.i}/${s.k}/weights/${s.n}`
     }
-    target.put(s.v)
+    brain.get(target).put(s.v)
 }
 
 worker.postMessage({ command: 'start' })
 worker.on('message', async (data) => {
-    if (data.b) {
-        if (useGun === 'true') return await fireSynapse(data.b)
+    if (data.s) {
+        if (useGun === 'true') return await fireSynapse(data.s)
     }
     if (data.command === 'failed') {
         return worker.postMessage({ command: 'start' })
     }
 })
 
-const neurons = []
-function integrateNeuron() {
-    if (neurons.length > 0) {
-        worker.postMessage({ s: neurons.pop() })
-    }
-}
-setInterval(() => {
-    integrateNeuron()
-}, config.recieveInterval / 2)
-
-function getRandomNeuron(db, config) {
+function getRandomNeuron(brain, config) {
     const t = randomValueFromArray([
         'input',
         'output',
@@ -143,10 +131,8 @@ function getRandomNeuron(db, config) {
     let i = randomBetween(0, length)
     let n = null
     let k = null
-    let neuron = null
-    if (['input', 'output', 'outputConnector'].includes(t)) {
-        neuron = db.get(t).get('weights').get(i)
-    } else {
+    let neuron = `${t}/weights/${i}`
+    if (t === 'hiddenLayers') {
         const keys = [
             'updateGateInputMatrix',
             'updateGateHiddenMatrix',
@@ -166,11 +152,15 @@ function getRandomNeuron(db, config) {
             columns = 1
         }
         n = randomBetween(0, config.networkWidth * columns)
-        neuron = db.get(t).get(i).get(k).get('weights').get(n)
+        neuron = `${t}/${i}/${k}/weights/${n}`
     }
 
-    neuron.once(async (v) => {
+    brain.get(neuron).once(async (v) => {
         if (isNaN(parseInt(v))) return
-        neurons.push({ t, i, k, n, v })
+        integrateNeuron({ t, i, k, n, v })
     })
+}
+
+async function integrateNeuron(s) {
+    worker.postMessage({ s })
 }
