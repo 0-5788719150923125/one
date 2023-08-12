@@ -176,7 +176,6 @@ async function getRandomNeuron() {
     }
     neuron.once((v) => {
         if (isNaN(parseInt(v))) return
-        console.log({ t, i, k, n, v })
         integrateNeuron({ t, i, k, n, v })
     })
     setTimeout(getRandomNeuron, config.synapseInterval)
