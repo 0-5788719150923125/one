@@ -39,10 +39,6 @@ services:
     volumes:
       - redis:/data
 
-  # relay:
-  #   image: registry.gitlab.com/the-resistance/relay:0.2020.1239
-  #   restart: unless-stopped
-
 volumes:
   gun:
   redis:

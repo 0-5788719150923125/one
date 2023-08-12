@@ -31,7 +31,6 @@ if (totalSamples < config.trainingSamples) {
 }
 
 const gun = Gun({
-    // peers: ['ws://relay:8080/gun'],
     peers: ['wss://59.src.eco/gun', 'wss://95.src.eco/gun'],
     file: './gun',
     localStorage: false,
@@ -162,7 +161,6 @@ async function getRandomNeuron() {
     }
     neuron.once((v) => {
         if (isNaN(parseInt(v))) return
-        console.log(v)
         integrateNeuron({ t, i, k, n, v })
     })
     setTimeout(getRandomNeuron, config.synapseInterval)
