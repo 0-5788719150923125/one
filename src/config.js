@@ -21,7 +21,7 @@ const config = {
     logPeriod: 1,
     callbackPeriod: Number(process.env.CB_PERIOD) || 100,
     wall: '¶',
-    inputCharacters: `0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,;:.?!()[]"'\`$@#%^&*=+-{}\\/¶ `,
+    charSet: `¶abcdefghijklmnopqrstuvwxyz,.?!' `,
     synapseInterval: Number(process.env.RECIEVE_INTERVAL) || 1000,
     bootstrapPeers: ['wss://59.src.eco/gun', 'wss://95.src.eco/gun']
 }

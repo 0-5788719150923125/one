@@ -129,13 +129,11 @@ async function getRandomNeuron() {
     ])
     let length = 0
     if (t === 'input') {
-        length =
-            (config.inputCharacters.length + 2) *
-            (config.inputCharacters.length + 1)
+        length = (config.charSet.length + 2) * (config.charSet.length + 1)
     } else if (t === 'output') {
-        length = config.inputCharacters.length + 2
+        length = config.charSet.length + 2
     } else if (t === 'outputConnector') {
-        length = (config.inputCharacters.length + 2) * config.networkWidth
+        length = (config.charSet.length + 2) * config.networkWidth
     } else if (t === 'hiddenLayers') {
         length = config.networkDepth
     } else return
@@ -158,7 +156,7 @@ async function getRandomNeuron() {
         k = randomValueFromArray(keys)
         let columns = config.networkWidth
         if (k.endsWith('InputMatrix') && i === 0) {
-            columns = config.inputCharacters.length + 1
+            columns = config.charSet.length + 1
         } else if (k.endsWith('Bias')) {
             columns = 1
         }

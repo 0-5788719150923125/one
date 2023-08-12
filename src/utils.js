@@ -385,52 +385,52 @@ export function randomBetween(min, max) {
 //     return network
 // }
 
-export function instantiateGRUNetwork(config) {
-    return {
-        type: 'GRU',
-        options: {
-            inputSize: config.inputCharacters.length + 1,
-            inputRange: config.inputCharacters.length + 1,
-            hiddenLayers: new Array(config.networkDepth).fill(
-                config.networkWidth
-            ),
-            outputSize: config.inputCharacters.length + 1,
-            decayRate: config.decayRate,
-            smoothEps: 1e-8,
-            regc: config.regc,
-            clipval: config.clipval,
-            maxPredictionLength: 333,
-            dataFormatter: dataFormatter(Array.from(config.inputCharacters)),
-            learningRate: config.initialRate,
-            errorThresh: config.errorThresh
-        },
-        trainOpts: {
-            iterations: config.iterations,
-            errorThresh: config.errorThresh,
-            log: false,
-            logPeriod: config.logPeriod,
-            learningRate: config.initialRate,
-            callbackPeriod: config.callbackPeriod,
-            timeout: 'Infinity'
-        },
-        input: {
-            rows: config.inputCharacters.length + 2,
-            columns: config.inputCharacters.length + 1,
-            weights: []
-        },
-        hiddenLayers: [],
-        outputConnector: {
-            rows: config.inputCharacters.length + 2,
-            columns: config.networkWidth,
-            weights: []
-        },
-        output: {
-            rows: config.inputCharacters.length + 2,
-            columns: 1,
-            weights: []
-        }
-    }
-}
+// export function instantiateGRUNetwork(config) {
+//     return {
+//         type: 'GRU',
+//         options: {
+//             inputSize: config.inputCharacters.length + 1,
+//             inputRange: config.inputCharacters.length + 1,
+//             hiddenLayers: new Array(config.networkDepth).fill(
+//                 config.networkWidth
+//             ),
+//             outputSize: config.inputCharacters.length + 1,
+//             decayRate: config.decayRate,
+//             smoothEps: 1e-8,
+//             regc: config.regc,
+//             clipval: config.clipval,
+//             maxPredictionLength: 333,
+//             dataFormatter: dataFormatter(Array.from(config.inputCharacters)),
+//             learningRate: config.initialRate,
+//             errorThresh: config.errorThresh
+//         },
+//         trainOpts: {
+//             iterations: config.iterations,
+//             errorThresh: config.errorThresh,
+//             log: false,
+//             logPeriod: config.logPeriod,
+//             learningRate: config.initialRate,
+//             callbackPeriod: config.callbackPeriod,
+//             timeout: 'Infinity'
+//         },
+//         input: {
+//             rows: config.inputCharacters.length + 2,
+//             columns: config.inputCharacters.length + 1,
+//             weights: []
+//         },
+//         hiddenLayers: [],
+//         outputConnector: {
+//             rows: config.inputCharacters.length + 2,
+//             columns: config.networkWidth,
+//             weights: []
+//         },
+//         output: {
+//             rows: config.inputCharacters.length + 2,
+//             columns: 1,
+//             weights: []
+//         }
+//     }
+// }
 
 export function featherLayer(array, max = 1) {
     let count = 0

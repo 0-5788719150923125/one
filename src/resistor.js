@@ -34,9 +34,7 @@ const net = new recurrent.GRU({
     regc: config.regc,
     smoothEps: config.smoothEps,
     maxPredictionLength: Number(process.env.PREDICTION_LENGTH) || 333,
-    dataFormatter: new utilities.DataFormatter([
-        ...Array.from(config.inputCharacters)
-    ])
+    dataFormatter: new utilities.DataFormatter([...Array.from(config.charSet)])
 })
 
 parentPort.on('message', async (data) => {
