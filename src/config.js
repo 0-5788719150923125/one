@@ -22,7 +22,8 @@ const config = {
     callbackPeriod: Number(process.env.CB_PERIOD) || 100,
     wall: '¶',
     inputCharacters: `0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,;:.?!()[]"'\`$@#%^&*=+-{}\\/¶ `,
-    synapseInterval: Number(process.env.RECIEVE_INTERVAL) || 1000
+    synapseInterval: Number(process.env.RECIEVE_INTERVAL) || 1000,
+    bootstrapPeers: ['wss://59.src.eco/gun', 'wss://95.src.eco/gun']
 }
 
 export default config

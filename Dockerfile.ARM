@@ -19,7 +19,6 @@ RUN npm install
 COPY src ./src
 
 RUN chown -R node /one && chmod -R 740 /one
-RUN mkdir -p /gun && chown -R node /gun && chmod -R 740 /gun
 
 USER node
 

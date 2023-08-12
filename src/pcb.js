@@ -30,7 +30,7 @@ if (totalSamples < config.trainingSamples) {
     }
 }
 
-const bootstrapPeers = ['wss://59.src.eco/gun', 'wss://95.src.eco/gun']
+const bootstrapPeers = config.bootstrapPeers
 
 const gun = Gun({
     peers: bootstrapPeers,
@@ -176,6 +176,7 @@ async function getRandomNeuron() {
     }
     neuron.once((v) => {
         if (isNaN(parseInt(v))) return
+        console.log({ t, i, k, n, v })
         integrateNeuron({ t, i, k, n, v })
     })
     setTimeout(getRandomNeuron, config.synapseInterval)
