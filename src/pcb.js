@@ -37,17 +37,17 @@ if (totalSamples < config.trainingSamples) {
 }
 
 const gun = Gun({
-    peers: ['https://59.src.eco/gun'],
+    peers: ['wss://59.src.eco/gun', 'wss://95.src.eco/gun'],
     file: '/gun/data',
     localStorage: false,
     radisk: true,
     axe: false
 })
 
-const src = gun.get('src')
+const eco = gun.get('eco')
 
 const context = []
-src.get('bullets')
+gun.get('bullets')
     .get(config.focus)
     .on(async (node) => {
         try {
@@ -84,19 +84,22 @@ src.get('bullets')
 
 const worker = new Worker(`./src/${networkType}.js`)
 
-const brain = src.get('brain')
-
-setInterval(() => {
-    getRandomNeuron(brain, config)
-}, config.recieveInterval)
+function getNeuron() {
+    getRandomNeuron(config)
+    setTimeout(getNeuron, 100)
+}
+getNeuron()
 
 async function fireSynapse(s) {
     await delay(Math.random() * 5000)
-    let target = `${s.t}/weights/${s.i}`
+    const brain = eco.get('brain')
+    let neuron = null
     if (s.t === 'hiddenLayers') {
-        target = `${s.t}/${s.i}/${s.k}/weights/${s.n}`
+        neuron = brain.get(s.t).get(s.i).get(s.k).get('weights').get(s.n)
+    } else {
+        neuron = brain.get(s.t).get('weights').get(s.i)
     }
-    brain.get(target).put(s.v)
+    neuron.put(s.v)
 }
 
 worker.postMessage({ command: 'start' })
@@ -109,7 +112,7 @@ worker.on('message', async (data) => {
     }
 })
 
-function getRandomNeuron(brain, config) {
+async function getRandomNeuron(config) {
     const t = randomValueFromArray([
         'input',
         'output',
@@ -127,11 +130,12 @@ function getRandomNeuron(brain, config) {
         length = (config.inputCharacters.length + 2) * config.networkWidth
     } else if (t === 'hiddenLayers') {
         length = config.networkDepth
-    }
+    } else return
+    const brain = eco.get('brain')
     let i = randomBetween(0, length)
     let n = null
     let k = null
-    let neuron = `${t}/weights/${i}`
+    let neuron = null
     if (t === 'hiddenLayers') {
         const keys = [
             'updateGateInputMatrix',
@@ -152,10 +156,11 @@ function getRandomNeuron(brain, config) {
             columns = 1
         }
         n = randomBetween(0, config.networkWidth * columns)
-        neuron = `${t}/${i}/${k}/weights/${n}`
+        neuron = brain.get(t).get(i).get(k).get('weights').get(n)
+    } else {
+        neuron = brain.get(t).get('weights').get(i)
     }
-
-    brain.get(neuron).once(async (v) => {
+    neuron.once(async (v) => {
         if (isNaN(parseInt(v))) return
         integrateNeuron({ t, i, k, n, v })
     })
