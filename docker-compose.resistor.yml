@@ -30,7 +30,7 @@ services:
       DECAY_RATE: 0.999
       MASK_CHANCE: 0.0
       CB_PERIOD: 1
-      RECIEVE_INTERVAL: 1000
+      SYNAPSE_RESET_THRESHOLD: 100000
 
   kv:
     image: redis:7.0.5-alpine

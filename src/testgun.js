@@ -1,36 +1,76 @@
 import Gun from 'gun'
-import SEA from 'gun/sea.js'
-import 'gun/lib/radix.js'
-import 'gun/lib/radisk.js'
-import 'gun/lib/store.js'
-import 'gun/lib/rindexed.js'
-import 'gun/lib/webrtc.js'
-import 'gun/lib/yson.js'
-import 'gun/lib/open.js'
 
 const gun = Gun({
-    // peers: ['http://localhost:9667/gun'],
     localStorage: false,
     radisk: true,
     axe: false
 })
 
-const src = gun.get('test')
+let last = 0
+let total = 0
+let fired = 0
 
 function fire() {
-    const i = Math.floor(Math.random() * 1000000)
+    let neurons = {}
+    for (let t = 0; t < 1000; t++) {
+        const i = Math.floor(Math.random() * 10000000)
+        const v = Math.random()
+        neurons[i] = v
+    }
 
-    src.get('neurons').put({ i, v: Math.random() })
+    gun.get('test')
+        .get('neurons')
+        .put(neurons, (ack) => fired++)
 
-    console.log(i)
-
-    setTimeout(fire, 1000)
+    setTimeout(fire, 60000)
 }
 
 fire()
 
-src.get('neurons')
-    // .map()
-    .on((data, key) => {
-        console.log([data.i, data.v])
+// function getStuff() {
+//     gun.get('test')
+//         .get('neurons')
+//         .get(Math.floor(Math.random() * 10000000))
+//         .once((value, key, _msg, _ev) => {
+//             console.log([key, value])
+//             console.log(_msg)
+//             last = value || 0
+//             total++
+//         })
+//     setTimeout(getStuff, 50)
+// }
+
+// getStuff()
+
+gun.get('test')
+    .get('neurons')
+    .map((value, key, _msg, _ev) => {
+        last = value
+        total++
     })
+
+function bytesToMB(bytes) {
+    return bytes / (1024 * 1024)
+}
+
+function profileMemory() {
+    // Get memory usage statistics
+    const memoryUsage = process.memoryUsage()
+    const rssMB = bytesToMB(memoryUsage.rss)
+    const heapTotalMB = bytesToMB(memoryUsage.heapTotal)
+    const heapUsedMB = bytesToMB(memoryUsage.heapUsed)
+    const externalMB = bytesToMB(memoryUsage.external)
+
+    // Display memory usage in MB
+    console.clear()
+    console.log(`TotalListeners: ${total.toString()}`)
+    console.log(`TotalBatches: ${fired.toString()}`)
+    console.log(`LastVal: ${last.toString()}`)
+    console.log(`RSS Memory: ${rssMB.toFixed(2)} MB`)
+    console.log(`Heap Total: ${heapTotalMB.toFixed(2)} MB`)
+    console.log(`Heap Used: ${heapUsedMB.toFixed(2)} MB`)
+    console.log(`External: ${externalMB.toFixed(2)} MB`)
+    setTimeout(profileMemory, 1000)
+}
+
+profileMemory()

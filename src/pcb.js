@@ -53,9 +53,10 @@ async function managePeers() {
 
 managePeers()
 
+const src = gun.get('src')
+
 const context = []
-gun.get('src')
-    .get('bullets')
+src.get('bullets')
     .get(config.focus)
     .on(async (node) => {
         try {
@@ -92,20 +93,15 @@ gun.get('src')
 
 const worker = new Worker(`./src/${networkType}.js`)
 
+const brain = src.get('brain')
+
 async function fireSynapse(s) {
     await delay(Math.random() * 5000)
     let neuron = null
     if (s.t === 'hiddenLayers') {
-        neuron = gun
-            .get('src')
-            .get('brain')
-            .get(s.t)
-            .get(s.i)
-            .get(s.k)
-            .get('weights')
-            .get(s.n)
+        neuron = brain.get(s.t).get(s.i).get(s.k).get('weights').get(s.n)
     } else {
-        neuron = gun.get('src').get('brain').get(s.t).get('weights').get(s.i)
+        neuron = brain.get(s.t).get('weights').get(s.i)
     }
     neuron.put(s.v)
 }
@@ -120,67 +116,86 @@ worker.on('message', async (data) => {
     }
 })
 
-async function getRandomNeuron() {
-    const t = randomValueFromArray([
-        'input',
-        'output',
-        'outputConnector',
-        'hiddenLayers'
-    ])
-    let length = 0
-    if (t === 'input') {
-        length = (config.charSet.length + 2) * (config.charSet.length + 1)
-    } else if (t === 'output') {
-        length = config.charSet.length + 2
-    } else if (t === 'outputConnector') {
-        length = (config.charSet.length + 2) * config.networkWidth
-    } else if (t === 'hiddenLayers') {
-        length = config.networkDepth
-    } else return
-    let i = randomBetween(0, length)
-    let n = null
-    let k = null
-    let neuron = null
-    if (t === 'hiddenLayers') {
-        const keys = [
-            'updateGateInputMatrix',
-            'updateGateHiddenMatrix',
-            // 'updateGateBias',
-            'resetGateInputMatrix',
-            'resetGateHiddenMatrix',
-            // 'resetGateBias',
-            'cellWriteInputMatrix',
-            'cellWriteHiddenMatrix',
-            'cellWriteBias'
-        ]
-        k = randomValueFromArray(keys)
-        let columns = config.networkWidth
-        if (k.endsWith('InputMatrix') && i === 0) {
-            columns = config.charSet.length + 1
-        } else if (k.endsWith('Bias')) {
-            columns = 1
+async function registerSynapses(config) {
+    let synapses = []
+    let totalFired = 0
+    const layerTypes = ['input', 'output', 'outputConnector', 'hiddenLayers']
+    for (const t of layerTypes) {
+        let length = 0
+        if (t === 'input') {
+            length = (config.charSet.length + 2) * (config.charSet.length + 1)
+        } else if (t === 'output') {
+            length = config.charSet.length + 2
+        } else if (t === 'outputConnector') {
+            length = (config.charSet.length + 2) * config.networkWidth
+        } else if (t === 'hiddenLayers') {
+            length = config.networkDepth
         }
-        n = randomBetween(0, config.networkWidth * columns)
-        neuron = gun
-            .get('src')
-            .get('brain')
-            .get(t)
-            .get(i)
-            .get(k)
-            .get('weights')
-            .get(n)
-    } else {
-        neuron = gun.get('src').get('brain').get(t).get('weights').get(i)
+        if (t === 'hiddenLayers') {
+            const keys = [
+                'updateGateInputMatrix',
+                'updateGateHiddenMatrix',
+                // 'updateGateBias',
+                'resetGateInputMatrix',
+                'resetGateHiddenMatrix',
+                // 'resetGateBias',
+                'cellWriteInputMatrix',
+                'cellWriteHiddenMatrix',
+                'cellWriteBias'
+            ]
+            for (let i = 0; i < length; i++) {
+                for (const k of keys) {
+                    const rows = config.networkWidth
+                    let columns = config.networkWidth
+                    if (k.endsWith('InputMatrix') && i === 0) {
+                        columns = config.charSet.length + 1
+                    } else if (k.endsWith('Bias')) {
+                        columns = 1
+                    }
+                    const maxLength = rows * columns
+                    let synapse = brain
+                        .get(t)
+                        .get(i)
+                        .get(k)
+                        .get('weights')
+                        .map((value, key) => {
+                            totalFired++
+                            if (isNaN(parseInt(key))) return
+                            if (key > maxLength) return
+                            if (isNaN(parseInt(value))) return
+                            integrateNeuron({ t, i, k, n: key, v: value })
+                        })
+                    synapses.push(synapse)
+                }
+            }
+        } else {
+            let synapse = brain
+                .get(t)
+                .get('weights')
+                .map((value, key) => {
+                    totalFired++
+                    if (isNaN(parseInt(key))) return
+                    if (key > length) return
+                    if (isNaN(parseInt(value))) return
+                    integrateNeuron({ t, i: key, k: null, n: null, v: value })
+                })
+            synapses.push(synapse)
+        }
     }
-    neuron.once((v) => {
-        if (isNaN(parseInt(v))) return
-        integrateNeuron({ t, i, k, n, v })
-    })
-    setTimeout(getRandomNeuron, config.synapseInterval)
+    while (totalFired < config.synapseResetThreshold) {
+        await delay(5000)
+        console.log(totalFired)
+    }
+    for (let i = 0; i < synapses.length; i++) {
+        synapses[i].off()
+        synapses[i] = null
+    }
+    synapses = null
+    registerSynapses(config)
 }
-
-getRandomNeuron()
 
 async function integrateNeuron(s) {
     worker.postMessage({ s })
 }
+
+registerSynapses(config)

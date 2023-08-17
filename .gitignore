@@ -1,6 +1,6 @@
 .env
 data
-radata
+radata*
 *.override.yml
 node_modules
 package-lock.json

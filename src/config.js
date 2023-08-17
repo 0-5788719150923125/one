@@ -22,7 +22,8 @@ const config = {
     callbackPeriod: Number(process.env.CB_PERIOD) || 100,
     wall: '¶',
     charSet: `¶abcdefghijklmnopqrstuvwxyz,.?!' `,
-    synapseInterval: Number(process.env.RECIEVE_INTERVAL) || 1000,
+    synapseResetThreshold: Number(process.env.RECIEVE_INTERVAL) || 100000,
+    // bootstrapPeers: ['ws://relay:8080/gun']
     bootstrapPeers: ['wss://59.src.eco/gun', 'wss://95.src.eco/gun']
 }
 
