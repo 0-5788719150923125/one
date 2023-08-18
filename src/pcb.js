@@ -198,4 +198,4 @@ async function integrateNeuron(s) {
     worker.postMessage({ s })
 }
 
-registerSynapses(config)
+if (useGun) registerSynapses(config)

@@ -5,6 +5,7 @@ services:
     image: ghcr.io/0-5788719150923125/one:latest
     command: node --max-old-space-size=${MEMORY:-1024} src/pcb.js
     restart: unless-stopped
+    network_mode: host
     user: 1000:1000
     build:
       context: .
@@ -36,6 +37,7 @@ services:
     image: redis:7.0.5-alpine
     command: redis-server --save 60 1
     restart: unless-stopped
+    network_mode: host
     volumes:
       - redis:/data
 
