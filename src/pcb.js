@@ -184,7 +184,6 @@ async function registerSynapses(config) {
     }
     while (totalFired < config.synapseResetThreshold) {
         await delay(5000)
-        console.log(totalFired)
     }
     for (let i = 0; i < synapses.length; i++) {
         synapses[i].off()
