@@ -2,14 +2,7 @@ import { Worker } from 'worker_threads'
 import Gun from 'gun'
 import SEA from 'gun/sea.js'
 import { addData, getDataLength } from './cache.js'
-import {
-    ad,
-    bc,
-    createTrainingData,
-    delay,
-    randomBetween,
-    randomValueFromArray
-} from './utils.js'
+import { ad, bc, createTrainingData, delay } from './utils.js'
 import config from './config.js'
 
 const networkType = process.env.NETWORK_TYPE || 'resistor'
@@ -36,7 +29,7 @@ const gun = Gun({
     peers: bootstrapPeers,
     file: './gun',
     localStorage: false,
-    radisk: true,
+    radisk: false,
     axe: false
 })
 
