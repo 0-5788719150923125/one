@@ -1,4 +1,5 @@
 import Gun from 'gun'
+import 'gun/lib/open.js'
 
 const gun = Gun({
     localStorage: false,
@@ -12,17 +13,20 @@ let fired = 0
 
 function fire() {
     let neurons = {}
-    for (let t = 0; t < 1000; t++) {
-        const i = Math.floor(Math.random() * 10000000)
-        const v = Math.random()
-        neurons[i] = v
-    }
+    // for (let t = 0; t < 10; t++) {
+    //     const i = Math.floor(Math.random() * 10000000)
+    //     const v = Math.random()
+    //     neurons[i] = v
+    // }
+
+    const i = Math.floor(Math.random() * 10000000)
+    const v = Math.random()
 
     gun.get('test')
         .get('neurons')
-        .put(neurons, (ack) => fired++)
+        .put({ i, v }, (ack) => fired++)
 
-    setTimeout(fire, 60000)
+    setTimeout(fire, 3000)
 }
 
 fire()
@@ -44,7 +48,10 @@ fire()
 
 gun.get('test')
     .get('neurons')
-    .map((value, key, _msg, _ev) => {
+    .on((value, key, _msg, _ev) => {
+        console.log(_msg)
+        // console.log([key, value])
+        // console.log(_msg.at.put[':'])
         last = value
         total++
     })
@@ -73,4 +80,4 @@ function profileMemory() {
     setTimeout(profileMemory, 1000)
 }
 
-profileMemory()
+// profileMemory()

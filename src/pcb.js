@@ -90,13 +90,19 @@ const brain = src.get('brain')
 
 async function fireSynapse(s) {
     await delay(Math.random() * 5000)
-    let neuron = null
     if (s.t === 'hiddenLayers') {
-        neuron = brain.get(s.t).get(s.i).get(s.k).get('weights').get(s.n)
+        brain
+            .get(s.t)
+            .get(s.i)
+            .get(s.k)
+            .get('weights')
+            .put(JSON.stringify({ i: s.n, v: s.v }))
     } else {
-        neuron = brain.get(s.t).get('weights').get(s.i)
+        brain
+            .get(s.t)
+            .get('weights')
+            .put(JSON.stringify({ i: s.i, v: s.v }))
     }
-    neuron.put(s.v)
 }
 
 worker.postMessage({ command: 'start' })
@@ -110,8 +116,6 @@ worker.on('message', async (data) => {
 })
 
 async function registerSynapses(config) {
-    let synapses = []
-    let totalFired = 0
     const layerTypes = ['input', 'output', 'outputConnector', 'hiddenLayers']
     for (const t of layerTypes) {
         let length = 0
@@ -146,44 +150,37 @@ async function registerSynapses(config) {
                         columns = 1
                     }
                     const maxLength = rows * columns
-                    let synapse = brain
+                    brain
                         .get(t)
                         .get(i)
                         .get(k)
                         .get('weights')
-                        .map((value, key) => {
-                            totalFired++
-                            if (isNaN(parseInt(key))) return
-                            if (key > maxLength) return
-                            if (isNaN(parseInt(value))) return
-                            integrateNeuron({ t, i, k, n: key, v: value })
+                        .on((data) => {
+                            try {
+                                const s = JSON.parse(data)
+                                if (isNaN(parseInt(s.i))) return
+                                if (s.i > maxLength) return
+                                if (isNaN(parseInt(s.v))) return
+                                integrateNeuron({ t, i, k, n: s.i, v: s.v })
+                            } catch {}
                         })
-                    synapses.push(synapse)
                 }
             }
         } else {
-            let synapse = brain
+            brain
                 .get(t)
                 .get('weights')
-                .map((value, key) => {
-                    totalFired++
-                    if (isNaN(parseInt(key))) return
-                    if (key > length) return
-                    if (isNaN(parseInt(value))) return
-                    integrateNeuron({ t, i: key, k: null, n: null, v: value })
+                .on((data) => {
+                    try {
+                        const s = JSON.parse(data)
+                        if (isNaN(parseInt(s.i))) return
+                        if (s.i > length) return
+                        if (isNaN(parseInt(s.v))) return
+                        integrateNeuron({ t, i: s.i, k: null, n: null, v: s.v })
+                    } catch {}
                 })
-            synapses.push(synapse)
         }
     }
-    while (totalFired < config.synapseResetThreshold) {
-        await delay(5000)
-    }
-    for (let i = 0; i < synapses.length; i++) {
-        synapses[i].off()
-        synapses[i] = null
-    }
-    synapses = null
-    registerSynapses(config)
 }
 
 async function integrateNeuron(s) {
