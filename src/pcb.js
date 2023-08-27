@@ -116,7 +116,12 @@ worker.on('message', async (data) => {
 })
 
 async function registerSynapses(config) {
-    const layerTypes = ['input', 'output', 'outputConnector', 'hiddenLayers']
+    const layerTypes = [
+        'input',
+        // 'output',
+        'outputConnector',
+        'hiddenLayers'
+    ]
     for (const t of layerTypes) {
         let length = 0
         if (t === 'input') {
