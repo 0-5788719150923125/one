@@ -5,30 +5,33 @@ services:
     image: ghcr.io/0-5788719150923125/one:latest
     command: node --max-old-space-size=${MEMORY:-1024} src/pcb.js
     restart: unless-stopped
+    network_mode: host
     user: 1000:1000
     build:
       context: .
       dockerfile: Dockerfile.${ARCH:-x64}
     volumes:
-      - gun:/gun
       - ./src:/one/src
       - ./data:/one/data
     environment:
+      MEMORY: 8192
       NETWORK_TYPE: transistor
-      NETWORK_WIDTH: ${NETWORK_WIDTH:-144}
-      NETWORK_DEPTH: ${NETWORK_DEPTH:-6}
-      BATCH_SIZE: 6
-      LEARNING_RATE: 0.001
-      REGC: 0.00001
-      CLIPVAL: 23
+      NETWORK_WIDTH: 512
+      NETWORK_DEPTH: 32
+      BATCH_SIZE: 3
+      LEARNING_RATE: 0.00000001
+      MOMENTUM: 0.000001
+      REGC: 0.01
+      CLIPVAL: 5.9
+      TRAIN_CONTEXT_LENGTH: 23
 
   kv:
     image: redis:7.0.5-alpine
     command: redis-server --save 60 1
     restart: unless-stopped
+    network_mode: host
     volumes:
       - redis:/data
 
 volumes:
-  gun:
   redis:
