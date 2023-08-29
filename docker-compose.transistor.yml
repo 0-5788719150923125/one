@@ -16,12 +16,12 @@ services:
     environment:
       MEMORY: 8192
       NETWORK_TYPE: transistor
-      NETWORK_WIDTH: 512
-      NETWORK_DEPTH: 32
-      BATCH_SIZE: 3
-      LEARNING_RATE: 0.00000001
-      MOMENTUM: 0.000001
-      REGC: 0.01
+      NETWORK_WIDTH: 64
+      NETWORK_DEPTH: 64
+      BATCH_SIZE: 1
+      LEARNING_RATE: 0.001
+      MOMENTUM: 0.1
+      REGC: 0.000001
       CLIPVAL: 5.9
       TRAIN_CONTEXT_LENGTH: 23
 

@@ -66,10 +66,10 @@ async function trainNetwork() {
             //     JSON.stringify(text, null, 2)
             // )
             // console.log(binaryToUnicode(text.join('')))
-            // fs.writeFileSync(
-            //     `/one/data/${net_name}.${networkType}.json`,
-            //     JSON.stringify(net.toJSON(), null, 2)
-            // )
+            fs.writeFileSync(
+                `/one/data/${net_name}.${networkType}.json`,
+                JSON.stringify(net.toJSON(), null, 2)
+            )
         },
         floodCallback: async () => {
             net.updateTrainingOptions({
@@ -123,7 +123,7 @@ async function createBatch(batchSize) {
         const value = JSON.parse(string)
         const input = value.input
         // console.log(value)
-        const output = value.input.join(config.wall) + config.wall
+        let output = value.input.join(config.wall) + config.wall
         const truncateLength =
             Math.floor(Math.random() * config.trainContextLength) + 2
         while (input.length > truncateLength) {
@@ -135,10 +135,17 @@ async function createBatch(batchSize) {
         //     '/one/data/input.txt',
         //     JSON.stringify(getRandomCharsBookContent(input.join(config.wall)))
         // )
+        while (output.length < 1312000) {
+            output = output + ' '
+        }
         return {
             input: encode.transform(Array.from(book)),
             output: encode.transform(Array.from(output))
         }
+        // return {
+        //     input: Math.random() < 0.5 ? [0, 0] : [1, 1],
+        //     output: Math.random() < 0.5 ? [0, 0] : [1, 1]
+        // }
     })
 }
 

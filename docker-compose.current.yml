@@ -14,13 +14,13 @@ services:
       - ./src:/one/src
       - ./data:/one/data
     environment:
-      MEMORY: 8192
-      NETWORK_TYPE: resistor
+      MEMORY: 16000
+      NETWORK_TYPE: current
       USE_GUN: 'false'
       NETWORK_WIDTH: 128
-      NETWORK_DEPTH: 6
-      BATCH_SIZE: 4096
-      TRAIN_CONTEXT_LENGTH: 9
+      NETWORK_DEPTH: 8
+      BATCH_SIZE: 3
+      TRAIN_CONTEXT_LENGTH: 23
       LEARNING_RATE: 0.001
       ERROR_THRESH: 0.000001
       REGC: 0.000001

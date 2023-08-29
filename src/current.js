@@ -4,6 +4,11 @@ import { recurrent, utilities } from 'brain.js'
 import { TrainStream } from 'train-stream'
 import { getRandomData } from './cache.js'
 import {
+    getEmptyBookContent,
+    getRandomCharsBookContent
+} from 'babel/src/search.js'
+import { ALPHA, CHARS } from 'babel/src/constants.js'
+import {
     ad,
     bc,
     maskTokens,
@@ -14,7 +19,7 @@ import {
 import config from './config.js'
 
 const net_name = process.env.NAME || 'brain'
-const networkType = 'resistor'
+const networkType = 'current'
 const useGun = process.env.USE_GUN || 'false'
 
 const wall = config.wall
@@ -72,6 +77,7 @@ parentPort.on('message', async (data) => {
         iterations: config.iterations,
         callbackPeriod: config.callbackPeriod,
         callback: async (details) => {
+            if (details.iterations < 1) return
             const tests = [
                 { temperature: 0 },
                 { temperature: 0.123 },
@@ -213,13 +219,16 @@ async function createBatch(batchSize) {
             value.input.shift()
         }
 
-        let data = `${value.input.join(wall)}${wall}`
+        const data = getRandomCharsBookContent(
+            `${wall}${value.input.join(wall)}${wall}`.toLowerCase()
+        )
 
-        return maskTokens(
-            getRandomSection(data, sectionSize),
-            maskChance,
-            '2'
-        ).toLowerCase()
+        const start = data.highlight.startLine * CHARS + data.highlight.startCol
+        const end = data.highlight.endLine * CHARS + data.highlight.endCol
+
+        const book = data.book.slice(start - 256, end + 256)
+        // console.log(book)
+        return book
     })
     return batched
 }

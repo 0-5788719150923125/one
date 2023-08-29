@@ -74,6 +74,12 @@
       "command": "docker compose -f docker-compose.resistor.yml up"
     },
     {
+      "label": "docker compose up (current)",
+      "detail": "Start the service in Docker.",
+      "type": "shell",
+      "command": "docker compose -f docker-compose.current.yml up"
+    },
+    {
       "label": "docker compose up -d",
       "detail": "Start the service in Docker.",
       "type": "shell",
