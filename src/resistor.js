@@ -207,7 +207,7 @@ async function createBatch(batchSize) {
     const batched = batch.map((string) => {
         const value = JSON.parse(string)
         const maxLength =
-            Math.floor(Math.random() * config.trainContextLength - 2) + 2
+            Math.floor(Math.random() * (config.trainContextLength - 2 + 1)) + 2
 
         while (value.input.length > maxLength) {
             value.input.shift()
