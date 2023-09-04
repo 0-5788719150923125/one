@@ -210,10 +210,7 @@ export function randomValueFromArray(array, biasFactor = 1) {
 }
 
 export function createTrainingData() {
-    return {
-        input: [faker.hacker.phrase()],
-        output: faker.hacker.phrase()
-    }
+    return faker.hacker.phrase()
 }
 
 export function* elapsedTimeGenerator() {

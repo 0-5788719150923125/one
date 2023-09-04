@@ -4,6 +4,7 @@ const config = {
     sim: sim ? 1 : 0,
     focus: process.env.FOCUS || 'trade',
     batchSize: Number(process.env.BATCH_SIZE) || 6,
+    listSize: Number(process.env.LIST_SIZE) || 32,
     trainingSamples: Number(process.env.TRAINING_SAMPLES) || 1024,
     networkWidth: Number(process.env.NETWORK_WIDTH) || 64,
     networkDepth: Number(process.env.NETWORK_DEPTH) || 2,

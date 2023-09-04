@@ -1,14 +1,14 @@
 import { Worker } from 'worker_threads'
 import Gun from 'gun'
 import SEA from 'gun/sea.js'
-import { addData, getDataLength } from './cache.js'
+import { appendDataToList, getListLength } from './cache.js'
 import { ad, bc, createTrainingData, delay } from './utils.js'
 import config from './config.js'
 
 const networkType = process.env.NETWORK_TYPE || 'resistor'
 const useGun = process.env.USE_GUN || 'false'
 
-const totalSamples = await getDataLength('samples')
+const totalSamples = await getListLength('samples')
 console.log(
     'found ' +
         bc.ROOT +
@@ -20,7 +20,7 @@ console.log('training ' + bc.ROOT + networkType + ad.TEXT + ' network')
 if (totalSamples < config.trainingSamples) {
     console.log('generating additional samples...')
     for (let i = 0; i < config.trainingSamples; i++) {
-        await addData(`samples`, JSON.stringify(createTrainingData()))
+        await appendDataToList(`samples`, createTrainingData())
     }
 }
 
@@ -69,17 +69,13 @@ src.get('bullets')
                 message = bullet.message
             }
             if (message.includes(config.wall)) return
-            const payload = {
-                input: context,
-                output: message
-            }
             console.log(`input: ${message}`)
             context.push(message)
             if (context.length <= 1) return
             while (context.length > config.attentionLength) {
                 context.shift()
             }
-            await addData(`samples`, JSON.stringify(payload))
+            await appendDataToList(`samples`, message)
         } catch (err) {
             console.error(err)
         }

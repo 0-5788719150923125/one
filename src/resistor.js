@@ -2,7 +2,7 @@ import fs from 'fs'
 import { parentPort } from 'worker_threads'
 import { recurrent, utilities } from 'brain.js'
 import { TrainStream } from 'train-stream'
-import { getRandomData } from './cache.js'
+import { getRandomBatchFromList } from './cache.js'
 import {
     ad,
     bc,
@@ -127,7 +127,7 @@ parentPort.on('message', async (data) => {
                 logPeriod: config.logPeriod,
                 callbackPeriod: config.callbackPeriod
             })
-            const batch = await createBatch(config.batchSize)
+            const batch = await createBatch(config.batchSize, config.listSize)
             readInputs(batch)
         },
         log: async (details) => {
@@ -154,7 +154,7 @@ parentPort.on('message', async (data) => {
         }
     })
 
-    const batch = await createBatch(config.batchSize)
+    const batch = await createBatch(config.batchSize, config.listSize)
     readInputs(batch)
 
     function readInputs(data) {
@@ -202,24 +202,14 @@ async function fireSynapses(net) {
     }
 }
 
-async function createBatch(batchSize) {
-    const batch = await getRandomData('samples', batchSize)
-    const batched = batch.map((string) => {
-        const value = JSON.parse(string)
-        const maxLength =
-            Math.floor(Math.random() * (config.trainContextLength - 2 + 1)) + 2
-
-        while (value.input.length > maxLength) {
-            value.input.shift()
-        }
-
-        let data = `${value.input.join(wall)}${wall}`
-
-        return maskTokens(
-            getRandomSection(data, sectionSize),
-            maskChance,
-            '2'
-        ).toLowerCase()
-    })
-    return batched
+async function createBatch(batchSize, listSize) {
+    const batches = []
+    for (let i = 0; i < batchSize; i++) {
+        const randomSize =
+            Math.floor(Math.random() * (listSize / 2)) + listSize / 2
+        const batch = await getRandomBatchFromList('samples', randomSize)
+        const normalized = batch.join(wall).toLowerCase()
+        batches.push(normalized)
+    }
+    return batches
 }

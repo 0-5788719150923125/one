@@ -14,12 +14,14 @@ services:
       - ./src:/one/src
       - ./data:/one/data
     environment:
+      FOCUS: ${FOCUS:-trade}
       MEMORY: ${MEMORY:-4096}
       NETWORK_TYPE: resistor
       USE_GUN: ${USE_GUN:-false}
       NETWORK_WIDTH: ${NETWORK_WIDTH:-64}
       NETWORK_DEPTH: ${NETWORK_DEPTH:-4}
-      BATCH_SIZE: ${BATCH_SIZE:-256}
+      BATCH_SIZE: ${BATCH_SIZE:-32}
+      LIST_SIZE: ${LIST_SIZE:-256}
       TRAIN_CONTEXT_LENGTH: ${TRAIN_CONTEXT_LENGTH:-9}
       LEARNING_RATE: ${LEARNING_RATE:-0.001}
       ERROR_THRESH: 0.000001
@@ -28,7 +30,7 @@ services:
       SMOOTHEPS: ${SMOOTHEPS:-1e-8}
       SECTION_SIZE: 100000000
       PREDICTION_LENGTH: 23
-      DECAY_RATE: 0.999
+      DECAY_RATE: ${DECAY_RATE:-0.999}
       MASK_CHANCE: 0.0
       CB_PERIOD: 1
       SYNAPSE_RESET_THRESHOLD: 100000
