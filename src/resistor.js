@@ -108,10 +108,8 @@ parentPort.on('message', async (data) => {
                 const normalized = `${input}${wall}`.toLowerCase()
                 const sample = test.temperature === 0 ? false : true
 
-                console.log(
-                    `generating text at temperature of ${test.temperature.toString()}`
-                )
-                console.log(`input:  ${bc.CORE}${input}${ad.TEXT}`)
+                console.log(`  temp: | ${test.temperature.toString()}`)
+                console.log(` input: | ${bc.CORE}${input}${ad.TEXT}`)
 
                 let text = net.run(normalized, sample, test.temperature)
 
@@ -132,7 +130,7 @@ parentPort.on('message', async (data) => {
                 text = bc.ROOT + text + ad.TEXT
                 if (append) text = text + bc.FOLD + append + ad.TEXT
 
-                console.log('output: ' + text)
+                console.log('output: | ' + text)
             }
             if (details.iterations === 0) return
             if (useGun === 'true') await fireSynapses(net)

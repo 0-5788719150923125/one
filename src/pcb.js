@@ -69,7 +69,7 @@ src.get('bullets')
                 message = bullet.message
             }
             if (message.includes(config.wall)) return
-            console.log(`bullet: ${message}`)
+            console.log(`bullet: | ${message}`)
             context.push(message)
             if (context.length <= 1) return
             while (context.length > config.attentionLength) {

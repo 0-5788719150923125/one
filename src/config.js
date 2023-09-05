@@ -25,7 +25,6 @@ const config = {
     wall: '¶',
     charSet: `¶abcdefghijklmnopqrstuvwxyz,.?!' `,
     synapseResetThreshold: Number(process.env.RECIEVE_INTERVAL) || 100000,
-    // bootstrapPeers: ['ws://relay:8080/gun']
     bootstrapPeers: ['wss://59.src.eco/gun', 'wss://95.src.eco/gun']
 }
 
