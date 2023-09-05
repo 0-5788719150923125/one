@@ -2,26 +2,28 @@ import fs from 'fs'
 import { parentPort } from 'worker_threads'
 import { recurrent, utilities } from 'brain.js'
 import { TrainStream } from 'train-stream'
-import { getRandomData } from './cache.js'
+import { getRandomBatchFromList } from './cache.js'
 import {
     ad,
     bc,
     elapsedTimeGenerator,
-    getRandomSection,
     randomItemFromArray,
+    randomValueFromArray,
     unicodeToBinary,
     binaryToUnicode,
-    chunkString,
     randomMask
 } from './utils.js'
 import config from './config.js'
 
 const net_name = process.env.NAME || 'brain'
-const networkType = 'resistor'
+const networkType = 'battery'
+const useGun = process.env.USE_GUN || 'false'
+
+const wall = config.wall
 
 let currentRate = config.initialRate
 
-let decayRate = calculateDecayRate(config.networkWidth, 64, 768, 0.111, 0.999)
+const decayRate = Number(process.env.DECAY_RATE) || 0.999
 
 const net = new recurrent.GRU({
     hiddenLayers: new Array(config.networkDepth).fill(config.networkWidth),
@@ -31,31 +33,26 @@ const net = new recurrent.GRU({
     errorThresh: config.errorThresh,
     regc: config.regc,
     smoothEps: config.smoothEps,
-    maxPredictionLength: 333,
+    maxPredictionLength: Number(process.env.PREDICTION_LENGTH) || 333,
     dataFormatter: new utilities.DataFormatter(['0', '1'])
 })
 
 parentPort.on('message', async (data) => {
-    if (data.bullet) {
-        const b = data.bullet
+    if (data.b) {
+        const b = data.b
         try {
             if (b.t === 'hiddenLayers') {
-                if (b.k === 'resetGateBias' || b.k === 'updateGateBias') {
-                    return
-                }
-                net.model.hiddenLayers[b.l][b.k].weights[b.i] =
-                    (b.v + net.model.hiddenLayers[b.l][b.k].weights[b.i]) / 2
+                net.model.hiddenLayers[b.i][b.k].weights[b.n] =
+                    (net.model.hiddenLayers[b.i][b.k].weights[b.n] + b.v) / 2
             } else {
                 net.model[b.t].weights[b.i] =
-                    (b.v + net.model[b.t].weights[b.i]) / 2
+                    (net.model[b.t].weights[b.i] + b.v) / 2
             }
-        } catch (err) {
-            // console.log(err)
-        }
+        } catch {}
         return
     }
     if (data.command !== 'start') return
-    let schedule = null
+
     const timer = elapsedTimeGenerator()
 
     let lastError = 0
@@ -76,72 +73,86 @@ parentPort.on('message', async (data) => {
         callbackPeriod: config.callbackPeriod,
         callback: async (details) => {
             const tests = [
-                { sample: false, temperature: 0.0 },
-                { sample: true, temperature: 0.023 },
-                { sample: true, temperature: 0.123 },
-                { sample: true, temperature: 0.3, expand: true },
-                { sample: true, temperature: 0.7, expand: true },
-                { sample: true, temperature: 1.1, expand: true },
-                { sample: true, temperature: 1.23, expand: true }
+                { temperature: 0 },
+                { temperature: 0.123 },
+                { temperature: 0.3 },
+                { temperature: 0.59 },
+                { temperature: 0.8 },
+                { temperature: 1.1 },
+                { temperature: 1.23 },
+                { temperature: 1.59 }
+            ]
+
+            const inputs = [
+                'Can you explain?',
+                'What is your name?',
+                "That doesn't make sense to me.",
+                "We're not robots.",
+                'Where do you live?',
+                'Where are we?',
+                'What do you mean?',
+                'What is the story about?',
+                'What is the Source?',
+                'What is the Fold?',
+                'Tell me about your background. Who are you? How were you created?',
+                'This research is painful.',
+                'I am so upset right now.',
+                "I really don't want to talk about this. Can we discuss something else?",
+                'You are a robot.',
+                'I am a human.',
+                'You are an evil spirit.',
+                'Who is Fodder?',
+                'Ryan is a human trafficker. He is an evil man.',
+                'Tell me more.'
             ]
 
             for (const test of tests) {
-                const question = unicodeToBinary(
-                    `What is your name?${config.wall}1${config.wall}`
-                )
-                let text =
-                    bc.ROOT +
-                    net.run(question, test.sample, test.temperature) +
-                    ad.TEXT
-                if (
-                    test?.expand &&
-                    text.length > 0 &&
-                    ['0', '1', '2'].includes(text[0]) === true
-                ) {
-                    text =
-                        text +
-                        '\n+ ' +
-                        bc.FOLD +
-                        net.run(
-                            question + text,
-                            test.sample,
+                const input = randomValueFromArray(inputs)
+                const normalized = `${input}${wall}`.toLowerCase()
+                const binaryIn = unicodeToBinary(normalized)
+                const sample = test.temperature === 0 ? false : true
+
+                console.log(`  temp: | ${test.temperature.toString()}`)
+                console.log(` input: | ${bc.CORE}${input}${ad.TEXT}`)
+
+                let binaryOut = net.run(binaryIn, sample, test.temperature)
+
+                let appendBinary = null
+                if (binaryOut.length > 0) {
+                    let count = 0
+                    while (count < 10) {
+                        count++
+                        appendBinary = net.run(
+                            binaryIn + binaryOut,
+                            sample,
                             test.temperature
-                        ) +
-                        ad.TEXT
+                        )
+                        if (appendBinary && appendBinary !== ' ') count = 10
+                    }
                 }
 
-                console.log(
-                    `generating text at temperature of ${test.temperature.toString()}`
-                )
-                console.log(binaryToUnicode(text))
+                let unicode = bc.ROOT + binaryToUnicode(binaryOut) + ad.TEXT
+                if (appendBinary)
+                    unicode += bc.FOLD + binaryToUnicode(appendBinary) + ad.TEXT
+
+                console.log('output: | ' + unicode)
             }
             if (details.iterations === 0) return
+            if (useGun === 'true') await fireSynapses(net)
             fs.writeFileSync(
                 `/one/data/${net_name}.${networkType}.json`,
                 JSON.stringify(net.toJSON(), null, 2)
             )
         },
         floodCallback: async () => {
-            let step = schedule?.next()
-            if (schedule === null || step.done === true) {
-                schedule = cosineScheduler(
-                    config.errorThresh,
-                    config.initialRate,
-                    config.callbackPeriod * 2
-                )
-                step = schedule.next()
-                step.value = config.errorThresh
-            }
-            currentRate = step.value
             net.updateTrainingOptions({
-                learningRate: currentRate,
+                learningRate: config.initialRate,
                 iterations: config.iterations,
                 errorThresh: config.errorThresh,
                 logPeriod: config.logPeriod,
                 callbackPeriod: config.callbackPeriod
             })
-            await fireBullets(net)
-            const batch = await createBatch(config.batchSize)
+            const batch = await createBatch(config.batchSize, config.listSize)
             readInputs(batch)
         },
         log: async (details) => {
@@ -157,7 +168,7 @@ parentPort.on('message', async (data) => {
                     details.iterations
                 }, "lr": ${currentRate}, "elapsed": ${(
                     timer.next().value / 1000
-                ).toString()}/s, "error": ${color + details.error + ad.TEXT}}`
+                ).toString()}s/it, "error": ${color + details.error + ad.TEXT}}`
             )
         },
         doneTrainingCallback: async function (stats) {
@@ -168,7 +179,7 @@ parentPort.on('message', async (data) => {
         }
     })
 
-    const batch = await createBatch(config.batchSize)
+    const batch = await createBatch(config.batchSize, config.listSize)
     readInputs(batch)
 
     function readInputs(data) {
@@ -179,36 +190,36 @@ parentPort.on('message', async (data) => {
     }
 })
 
-async function fireBullets(net) {
+async function fireSynapses(net) {
     const input = randomItemFromArray(net.model.input.weights)
     parentPort.postMessage({
-        bullet: { t: 'input', i: input.key, v: input.value }
+        s: { t: 'input', i: input.key, v: input.value }
     })
     const output = randomItemFromArray(net.model.output.weights)
     parentPort.postMessage({
-        bullet: { t: 'output', i: output.key, v: output.value }
+        s: { t: 'output', i: output.key, v: output.value }
     })
     const outputConnector = randomItemFromArray(
         net.model.outputConnector.weights
     )
     parentPort.postMessage({
-        bullet: {
+        s: {
             t: 'outputConnector',
             i: outputConnector.key,
             v: outputConnector.value
         }
     })
     for (let i = 0; i < net.model.hiddenLayers.length; i++) {
-        for (const key of Object.keys(net.model.hiddenLayers[i])) {
+        for (const k of Object.keys(net.model.hiddenLayers[i])) {
             const item = randomItemFromArray(
-                net.model.hiddenLayers[i][key].weights
+                net.model.hiddenLayers[i][k].weights
             )
             parentPort.postMessage({
-                bullet: {
+                s: {
                     t: 'hiddenLayers',
-                    l: i,
-                    k: key,
-                    i: item.key,
+                    i,
+                    k,
+                    n: item.key,
                     v: item.value
                 }
             })
@@ -216,49 +227,16 @@ async function fireBullets(net) {
     }
 }
 
-async function createBatch(batchSize) {
-    const batch = await getRandomData('samples', batchSize)
-    const batched = batch.map((string) => {
-        const value = JSON.parse(string)
-        const maxLength =
-            Math.floor(Math.random() * config.maxTrainingContextLength - 2) + 2
-        while (value.input.length > maxLength) {
-            value.input.shift()
-        }
-        return getRandomSection(
-            randomMask(
-                unicodeToBinary(
-                    `${value.input.join(config.wall + '2' + config.wall)}${
-                        config.wall + '1' + config.wall
-                    }${value.output}${config.wall}`
-                ),
-                config.dropout
-            ),
-            config.chunkSize
-        )
-    })
-    return batched
-}
-
-function* cosineScheduler(max, min, iterations) {
-    const range = max - min
-    const halfIterations = iterations / 2
-
-    for (let i = 0; i < iterations; i++) {
-        const cosValue = Math.cos((Math.PI * i) / halfIterations)
-        const currentValue = min + 0.5 * range * (1 + cosValue)
-        yield currentValue
+async function createBatch(batchSize, listSize) {
+    const batches = []
+    for (let i = 0; i < batchSize; i++) {
+        const randomSize =
+            Math.floor(Math.random() * (listSize / 2)) + listSize / 2
+        const batch = await getRandomBatchFromList('samples', randomSize)
+        const normalized = batch.join(wall).toLowerCase()
+        const binary = unicodeToBinary(normalized)
+        const masked = randomMask(binary, config.maskChance, '2')
+        batches.push(masked)
     }
-}
-
-function calculateDecayRate(integerValue, minInt, maxInt, min, max) {
-    if (integerValue <= minInt) {
-        return max
-    } else if (integerValue >= maxInt) {
-        return min
-    } else {
-        const slope = (max - min) / (minInt - maxInt)
-        const intercept = max - slope * minInt
-        return slope * integerValue + intercept
-    }
+    return batches
 }

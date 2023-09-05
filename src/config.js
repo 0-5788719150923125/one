@@ -14,7 +14,7 @@ const config = {
     attentionLength: 23,
     initialRate: Number(process.env.LEARNING_RATE) || 0.001,
     momentum: Number(process.env.MOMENTUM) || 0.1,
-    dropout: Number(process.env.DROPOUT) || 0.1,
+    maskChance: Number(process.env.MASK_CHANCE) || 0.1,
     regc: Number(process.env.REGC) || 0.00001,
     smoothEps: Number(process.env.SMOOTHEPS) || 1e-8,
     clipval: Number(process.env.CLIPVAL) || 5,
