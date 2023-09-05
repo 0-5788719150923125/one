@@ -111,7 +111,7 @@ parentPort.on('message', async (data) => {
                 console.log(
                     `generating text at temperature of ${test.temperature.toString()}`
                 )
-                console.log(`input: ${bc.CORE}${input}${ad.TEXT}`)
+                console.log(`input:  ${bc.CORE}${input}${ad.TEXT}`)
 
                 let text = net.run(normalized, sample, test.temperature)
 
