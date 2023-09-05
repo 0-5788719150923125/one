@@ -6,10 +6,9 @@ import { getRandomBatchFromList } from './cache.js'
 import {
     ad,
     bc,
-    maskTokens,
     elapsedTimeGenerator,
-    getRandomSection,
-    randomItemFromArray
+    randomItemFromArray,
+    randomValueFromArray
 } from './utils.js'
 import config from './config.js'
 
@@ -22,8 +21,6 @@ const wall = config.wall
 let currentRate = config.initialRate
 
 const decayRate = Number(process.env.DECAY_RATE) || 0.999
-const sectionSize = Number(process.env.SECTION_SIZE) || 23
-const maskChance = Number(process.env.MASK_CHANCE) || 0.0
 
 const net = new recurrent.GRU({
     hiddenLayers: new Array(config.networkDepth).fill(config.networkWidth),
@@ -83,15 +80,40 @@ parentPort.on('message', async (data) => {
                 { temperature: 1.59 }
             ]
 
+            const inputs = [
+                'Can you explain?',
+                'What is your name?',
+                "That doesn't make sense to me.",
+                "We're not robots.",
+                'Where do you live?',
+                'Where are we?',
+                'What do you mean?',
+                'What is the story about?',
+                'What is the Source?',
+                'What is the Fold?',
+                'Tell me about your background. Who are you? How were you created?',
+                'This research is painful.',
+                'I am so upset right now.',
+                "I really don't want to talk about this. Can we discuss something else?",
+                'You are a robot.',
+                'I am a human.',
+                'You are an evil spirit.',
+                'Who is Fodder?',
+                'Ryan is a human trafficker. He is an evil man.',
+                'Tell me more.'
+            ]
+
             for (const test of tests) {
-                const question = `What is your name?${wall}`.toLowerCase()
+                const input = randomValueFromArray(inputs)
+                const normalized = `${input}${wall}`.toLowerCase()
                 const sample = test.temperature === 0 ? false : true
 
                 console.log(
                     `generating text at temperature of ${test.temperature.toString()}`
                 )
+                console.log(`input: ${bc.CORE}${input}${ad.TEXT}`)
 
-                let text = net.run(question, sample, test.temperature)
+                let text = net.run(normalized, sample, test.temperature)
 
                 let append = null
                 if (text.length > 0 && text.startsWith(' ') !== true) {
@@ -99,7 +121,7 @@ parentPort.on('message', async (data) => {
                     while (count < 10) {
                         count++
                         append = net.run(
-                            question + text,
+                            normalized + text,
                             sample,
                             test.temperature
                         )
@@ -110,7 +132,7 @@ parentPort.on('message', async (data) => {
                 text = bc.ROOT + text + ad.TEXT
                 if (append) text = text + bc.FOLD + append + ad.TEXT
 
-                console.log(text)
+                console.log('output: ' + text)
             }
             if (details.iterations === 0) return
             if (useGun === 'true') await fireSynapses(net)
@@ -143,7 +165,7 @@ parentPort.on('message', async (data) => {
                     details.iterations
                 }, "lr": ${currentRate}, "elapsed": ${(
                     timer.next().value / 1000
-                ).toString()}/s, "error": ${color + details.error + ad.TEXT}}`
+                ).toString()}s/it, "error": ${color + details.error + ad.TEXT}}`
             )
         },
         doneTrainingCallback: async function (stats) {
