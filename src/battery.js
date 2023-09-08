@@ -11,7 +11,8 @@ import {
     randomValueFromArray,
     unicodeToBinary,
     binaryToUnicode,
-    randomMask
+    randomMask,
+    tokenizer
 } from './utils.js'
 import config from './config.js'
 
@@ -20,6 +21,9 @@ const networkType = 'battery'
 const useGun = process.env.USE_GUN || 'false'
 
 const wall = config.wall
+
+const tokens = tokenizer('01', 4, 1).map((token) => [token])
+console.log(tokens)
 
 let currentRate = config.initialRate
 
@@ -34,7 +38,7 @@ const net = new recurrent.GRU({
     regc: config.regc,
     smoothEps: config.smoothEps,
     maxPredictionLength: Number(process.env.PREDICTION_LENGTH) || 333,
-    dataFormatter: new utilities.DataFormatter(['0', '1'])
+    dataFormatter: new utilities.DataFormatter(tokens)
 })
 
 parentPort.on('message', async (data) => {
@@ -108,8 +112,7 @@ parentPort.on('message', async (data) => {
 
             for (const test of tests) {
                 const input = randomValueFromArray(inputs)
-                const normalized = `${input}${wall}`.toLowerCase()
-                const binaryIn = unicodeToBinary(normalized)
+                const binaryIn = unicodeToBinary(`${input}${wall}`)
                 const sample = test.temperature === 0 ? false : true
 
                 console.log(`  temp: | ${test.temperature.toString()}`)
@@ -233,8 +236,7 @@ async function createBatch(batchSize, listSize) {
         const randomSize =
             Math.floor(Math.random() * (listSize / 2)) + listSize / 2
         const batch = await getRandomBatchFromList('samples', randomSize)
-        const normalized = batch.join(wall).toLowerCase()
-        const binary = unicodeToBinary(normalized)
+        const binary = unicodeToBinary(batch.join(wall))
         const masked = randomMask(binary, config.maskChance, '2')
         batches.push(masked)
     }

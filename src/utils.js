@@ -180,6 +180,54 @@ export function randomMask(str, percent = 0.1, char = '2') {
     return replacedString
 }
 
+export function tokenizer(inputString, stepSize, numSteps) {
+    const uniqueCharacters = [...new Set(inputString)]
+    const combinations = []
+
+    function generate(current, depth) {
+        if (depth === 0) {
+            combinations.push(current)
+            return
+        }
+
+        for (let i = 0; i < uniqueCharacters.length; i++) {
+            generate(current + uniqueCharacters[i], depth - 1)
+        }
+    }
+
+    for (let len = stepSize; len <= stepSize * numSteps; len += stepSize) {
+        generate('', len)
+    }
+
+    return combinations
+}
+
+export function buildBytePairVocabulary(trainingData, maxTokens) {
+    const ngramCounts = new Map()
+
+    // Count the frequency of n-grams in the training data
+    for (const text of trainingData) {
+        for (let i = 0; i < text.length; i++) {
+            for (let j = i + 1; j <= text.length; j++) {
+                const ngram = text.slice(i, j)
+                if (ngramCounts.has(ngram)) {
+                    ngramCounts.set(ngram, ngramCounts.get(ngram) + 1)
+                } else {
+                    ngramCounts.set(ngram, 1)
+                }
+            }
+        }
+    }
+
+    // Sort n-grams by frequency in descending order
+    const sortedNgrams = [...ngramCounts.entries()].sort((a, b) => b[1] - a[1])
+
+    // Take the top 'maxTokens' n-grams to build the vocabulary
+    const vocabulary = sortedNgrams.slice(0, maxTokens).map((entry) => entry[0])
+
+    return vocabulary
+}
+
 export function maskTokens(str, percent = 0.1, char = '2') {
     let arr = str.split(' ')
 

@@ -16,7 +16,7 @@ console.log(
         ad.TEXT +
         ' training samples...'
 )
-console.log('training ' + bc.ROOT + networkType + ad.TEXT + ' network')
+console.log('training ' + bc.ROOT + networkType + ad.TEXT)
 if (totalSamples < config.trainingSamples) {
     console.log('generating additional samples...')
     for (let i = 0; i < config.trainingSamples; i++) {

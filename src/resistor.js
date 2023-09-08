@@ -2,10 +2,11 @@ import fs from 'fs'
 import { parentPort } from 'worker_threads'
 import { recurrent, utilities } from 'brain.js'
 import { TrainStream } from 'train-stream'
-import { getRandomBatchFromList } from './cache.js'
+import { getRandomBatchFromList, getListLength } from './cache.js'
 import {
     ad,
     bc,
+    buildBytePairVocabulary,
     elapsedTimeGenerator,
     randomItemFromArray,
     randomValueFromArray
@@ -22,6 +23,15 @@ let currentRate = config.initialRate
 
 const decayRate = Number(process.env.DECAY_RATE) || 0.999
 
+const length = await getListLength('samples')
+const trainingData = await getRandomBatchFromList('samples', length)
+
+const maxTokens = 123 // Set the maximum number of tokens in the vocabulary
+const vocabulary = buildBytePairVocabulary(trainingData, maxTokens)
+
+const tokens = vocabulary.map((token) => [token])
+console.log(tokens)
+
 const net = new recurrent.GRU({
     hiddenLayers: new Array(config.networkDepth).fill(config.networkWidth),
     learningRate: config.initialRate,
@@ -31,7 +41,7 @@ const net = new recurrent.GRU({
     regc: config.regc,
     smoothEps: config.smoothEps,
     maxPredictionLength: Number(process.env.PREDICTION_LENGTH) || 333,
-    dataFormatter: new utilities.DataFormatter([...Array.from(config.charSet)])
+    dataFormatter: new utilities.DataFormatter(tokens)
 })
 
 parentPort.on('message', async (data) => {
