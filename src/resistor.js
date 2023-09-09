@@ -26,8 +26,11 @@ const decayRate = Number(process.env.DECAY_RATE) || 0.999
 const length = await getListLength('samples')
 const trainingData = await getRandomBatchFromList('samples', length)
 
-const maxTokens = 123 // Set the maximum number of tokens in the vocabulary
-const vocabulary = buildBytePairVocabulary(trainingData, maxTokens)
+const maxTokens = 123
+const vocabulary = buildBytePairVocabulary(
+    trainingData.map((line) => line.toLowerCase() + wall),
+    maxTokens
+)
 
 const tokens = vocabulary.map((token) => [token])
 console.log(tokens)
@@ -236,7 +239,8 @@ async function createBatch(batchSize, listSize) {
     const batches = []
     for (let i = 0; i < batchSize; i++) {
         const randomSize =
-            Math.floor(Math.random() * (listSize / 2)) + listSize / 2
+            Math.floor(Math.random() * Math.ceil(listSize / 2)) +
+            Math.ceil(listSize / 2)
         const batch = await getRandomBatchFromList('samples', randomSize)
         const normalized = batch.join(wall).toLowerCase()
         batches.push(normalized)

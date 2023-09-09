@@ -56,34 +56,10 @@
       "command": "docker compose pull"
     },
     {
-      "label": "docker compose up (compressor)",
+      "label": "docker compose up",
       "detail": "Start the service in Docker.",
       "type": "shell",
-      "command": "docker compose up"
-    },
-    {
-      "label": "docker compose up (transistor)",
-      "detail": "Start the service in Docker.",
-      "type": "shell",
-      "command": "docker compose -f docker-compose.transistor.yml up"
-    },
-    {
-      "label": "docker compose up (resistor)",
-      "detail": "Start the service in Docker.",
-      "type": "shell",
-      "command": "docker compose -f docker-compose.resistor.yml up"
-    },
-    {
-      "label": "docker compose up (battery)",
-      "detail": "Start the service in Docker.",
-      "type": "shell",
-      "command": "docker compose -f docker-compose.battery.yml up"
-    },
-    {
-      "label": "docker compose up (current)",
-      "detail": "Start the service in Docker.",
-      "type": "shell",
-      "command": "docker compose -f docker-compose.current.yml up"
+      "command": "docker compose -f docker-compose.${input:arch}.yml up"
     },
     {
       "label": "docker compose up -d",
@@ -101,15 +77,16 @@
   "inputs": [
     {
       "type": "pickString",
-      "id": "env",
-      "description": "Guild, or global?",
-      "options": ["dev", "global"]
-    },
-    {
-      "type": "pickString",
-      "id": "task",
-      "description": "Deploy, or delete?",
-      "options": ["deploy", "delete"]
+      "id": "arch",
+      "description": "Which architicture?",
+      "options": [
+        "battery",
+        "capacitor",
+        "compressor",
+        "current",
+        "resistor",
+        "transistor"
+      ]
     }
   ]
 }
