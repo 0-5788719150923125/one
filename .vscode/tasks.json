@@ -84,6 +84,7 @@
         "capacitor",
         "compressor",
         "current",
+        "diode",
         "resistor",
         "transistor"
       ]

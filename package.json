@@ -18,6 +18,7 @@
     "brain.js": "^2.0.0-beta.23",
     "danfojs-node": "^1.1.2",
     "gun": "https://github.com/amark/gun.git",
+    "natural": "^6.7.1",
     "redis": "^4.6.7",
     "train-stream": "^1.0.4"
   },

@@ -1,4 +1,6 @@
 import { faker } from '@faker-js/faker'
+import natural from 'natural'
+const { NGrams } = natural
 
 export const bc = {
     FOLD: '\x1b[34m',
@@ -215,6 +217,38 @@ export function buildBytePairVocabulary(trainingData, maxTokens) {
                 } else {
                     ngramCounts.set(ngram, 1)
                 }
+            }
+        }
+    }
+
+    // Sort n-grams by frequency in descending order
+    const sortedNgrams = [...ngramCounts.entries()].sort((a, b) => b[1] - a[1])
+
+    // Take the top 'maxTokens' n-grams to build the vocabulary
+    const vocabulary = sortedNgrams.slice(0, maxTokens).map((entry) => entry[0])
+
+    return vocabulary
+}
+
+export function buildNGramVocabulary(
+    trainingData,
+    ngramSize,
+    maxTokens,
+    leftPad = '[START]',
+    rightPad = '[END]'
+) {
+    const ngramCounts = new Map()
+
+    // Generate n-grams from the training data with spaces included
+    for (const text of trainingData) {
+        const words = text.split(' ')
+        const ngrams = NGrams.ngrams(words, ngramSize, leftPad, rightPad)
+        for (const ngram of ngrams) {
+            const ngramStr = ngram.join(' ')
+            if (ngramCounts.has(ngramStr)) {
+                ngramCounts.set(ngramStr, ngramCounts.get(ngramStr) + 1)
+            } else {
+                ngramCounts.set(ngramStr, 1)
             }
         }
     }
