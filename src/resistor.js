@@ -26,14 +26,17 @@ const decayRate = Number(process.env.DECAY_RATE) || 0.999
 const length = await getListLength('samples')
 const trainingData = await getRandomBatchFromList('samples', length)
 
-const maxTokens = 123
+const maxTokens = 999
+const minLength = 3
 const vocabulary = buildBytePairVocabulary(
     trainingData.map((line) => line.toLowerCase() + wall),
-    maxTokens
+    maxTokens,
+    minLength
 )
 
 const tokens = vocabulary.map((token) => [token])
 console.log(tokens)
+fs.writeFileSync('data/tokens.json', JSON.stringify(tokens, null, 2))
 
 const net = new recurrent.GRU({
     hiddenLayers: new Array(config.networkDepth).fill(config.networkWidth),

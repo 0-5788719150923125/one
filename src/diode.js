@@ -6,6 +6,7 @@ import { getRandomBatchFromList, getListLength } from './cache.js'
 import {
     ad,
     bc,
+    buildBytePairVocabulary,
     buildNGramVocabulary,
     elapsedTimeGenerator,
     randomItemFromArray,
@@ -26,20 +27,20 @@ const decayRate = Number(process.env.DECAY_RATE) || 0.999
 const length = await getListLength('samples')
 const trainingData = await getRandomBatchFromList('samples', length)
 
-const nGramSize = 2
-const maxTokens = 666
-const vocabulary = buildNGramVocabulary(
-    trainingData.map((line) => line.toLowerCase() + ' ' + wall + ' '),
-    nGramSize,
+const nGramSize = 1
+const maxTokens = 33
+const minLength = 2
+const vocabulary = buildBytePairVocabulary(
+    trainingData.map((line) => line.toLowerCase() + wall),
     maxTokens,
-    null,
-    null
+    minLength
 )
 
-vocabulary.unshift(' ')
+// vocabulary.unshift(' ')
 
 const tokens = vocabulary.map((token) => [token])
 console.log(tokens)
+fs.writeFileSync('data/tokens.json', JSON.stringify(tokens, null, 2))
 
 const net = new recurrent.GRU({
     hiddenLayers: new Array(config.networkDepth).fill(config.networkWidth),

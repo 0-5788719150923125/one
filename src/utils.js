@@ -204,7 +204,7 @@ export function tokenizer(inputString, stepSize, numSteps) {
     return combinations
 }
 
-export function buildBytePairVocabulary(trainingData, maxTokens) {
+export function buildBytePairVocabulary(trainingData, maxTokens, minLength) {
     const ngramCounts = new Map()
 
     // Count the frequency of n-grams in the training data
@@ -212,10 +212,12 @@ export function buildBytePairVocabulary(trainingData, maxTokens) {
         for (let i = 0; i < text.length; i++) {
             for (let j = i + 1; j <= text.length; j++) {
                 const ngram = text.slice(i, j)
-                if (ngramCounts.has(ngram)) {
-                    ngramCounts.set(ngram, ngramCounts.get(ngram) + 1)
-                } else {
-                    ngramCounts.set(ngram, 1)
+                if (ngram.length >= minLength) {
+                    if (ngramCounts.has(ngram)) {
+                        ngramCounts.set(ngram, ngramCounts.get(ngram) + 1)
+                    } else {
+                        ngramCounts.set(ngram, 1)
+                    }
                 }
             }
         }
