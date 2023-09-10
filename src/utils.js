@@ -1,3 +1,4 @@
+import seedrandom from 'seedrandom'
 import { faker } from '@faker-js/faker'
 import natural from 'natural'
 const { NGrams } = natural
@@ -264,6 +265,31 @@ export function buildNGramVocabulary(
     return vocabulary
 }
 
+export function buildWordLevelTokenizer(trainingData, maxTokens) {
+    const wordCounts = new Map()
+    const tokenizer = new natural.TreebankWordTokenizer()
+
+    // Count the frequency of words in the training data
+    for (const text of trainingData) {
+        const words = tokenizer.tokenize(text) // Use the Treebank tokenizer
+        for (const word of words) {
+            if (wordCounts.has(word)) {
+                wordCounts.set(word, wordCounts.get(word) + 1)
+            } else {
+                wordCounts.set(word, 1)
+            }
+        }
+    }
+
+    // Sort words by frequency in descending order
+    const sortedWords = [...wordCounts.entries()].sort((a, b) => b[1] - a[1])
+
+    // Take the top 'maxTokens' words to build the vocabulary
+    const vocabulary = sortedWords.slice(0, maxTokens).map((entry) => entry[0])
+
+    return vocabulary
+}
+
 export function maskTokens(str, percent = 0.1, char = '2') {
     let arr = str.split(' ')
 
@@ -319,6 +345,27 @@ export function getRandomIdentity() {
     return randomNumber
 }
 
+export function getIdentity(seed) {
+    if (seed !== undefined) {
+        seedrandom(seed, { global: true })
+    }
+
+    const count = Math.floor(Math.random() * 2) + 17
+    const leading = Math.floor(Math.random() * 9) + 1
+    let identity = leading.toString()
+
+    for (let i = 1; i < count; i++) {
+        const digit = Math.floor(Math.random() * 10)
+        identity += digit.toString()
+    }
+
+    if (seed !== undefined) {
+        seedrandom()
+    }
+
+    return identity
+}
+
 export function generateRandomBinaryString(maxLength = 9) {
     const length = Math.floor(Math.random() * maxLength) + 1
     let binaryString = ''
@@ -353,96 +400,6 @@ export function averageArrays(arr1, arr2) {
     return averagedArray
 }
 
-export async function accumulateGradients(myNet, urBit) {
-    return {
-        type: myNet.type,
-        options: {
-            inputSize: myNet.options.inputSize,
-            inputRange: myNet.options.inputRange,
-            hiddenLayers: myNet.options.hiddenLayers,
-            outputSize: myNet.options.outputSize,
-            decayRate: myNet.options.decayRate,
-            smoothEps: myNet.options.smoothEps,
-            regc: myNet.options.regc,
-            clipval: myNet.options.clipval,
-            maxPredictionLength: myNet.options.maxPredictionLength,
-            dataFormatter: {
-                indexTable: myNet.options.dataFormatter.indexTable,
-                characterTable: myNet.options.dataFormatter.characterTable,
-                values: myNet.options.dataFormatter.values,
-                characters: myNet.options.dataFormatter.characters,
-                specialIndexes: myNet.options.dataFormatter.specialIndexes
-            },
-            learningRate: 0.001,
-            errorThresh: 0.000001
-        },
-        trainOpts: {
-            iterations: myNet.trainOpts.iterations,
-            errorThresh: myNet.trainOpts.errorThresh,
-            log: myNet.trainOpts.log,
-            logPeriod: myNet.trainOpts.logPeriod,
-            learningRate: myNet.trainOpts.learningRate,
-            callbackPeriod: myNet.trainOpts.callbackPeriod,
-            timeout: myNet.trainOpts.timeout
-        },
-        input: {
-            rows: myNet.input.rows,
-            columns: myNet.input.columns,
-            weights: averageArrays(
-                myNet.input.weights,
-                urBit.input.weights
-            ).slice(0, myNet.input.rows * myNet.input.columns)
-        },
-        hiddenLayers: mergeHiddenLayers(myNet, urBit),
-        outputConnector: {
-            rows: myNet.outputConnector.rows,
-            columns: myNet.outputConnector.columns,
-            weights: averageArrays(
-                myNet.outputConnector.weights,
-                urBit.outputConnector.weights
-            ).slice(
-                0,
-                myNet.outputConnector.rows * myNet.outputConnector.columns
-            )
-        },
-        output: {
-            rows: myNet.output.rows,
-            columns: myNet.output.columns,
-            weights: averageArrays(
-                myNet.output.weights,
-                urBit.output.weights
-            ).slice(0, myNet.output.rows * myNet.output.columns)
-        }
-    }
-}
-
-// function mergeHiddenLayers(myNet, urBit) {
-//     const hiddenLayers = []
-//     try {
-//         for (let i = 0; i < myNet.hiddenLayers.length; i++) {
-//             const layer = {}
-//             for (const key of keys.GRU) {
-//                 layer[key] = {
-//                     rows: myNet.hiddenLayers[i][key].rows,
-//                     columns: myNet.hiddenLayers[i][key].columns,
-//                     weights: averageArrays(
-//                         myNet.hiddenLayers[i][key].weights,
-//                         urBit.hiddenLayers[i][key].weights
-//                     ).slice(
-//                         0,
-//                         myNet.hiddenLayers[i][key].rows *
-//                             myNet.hiddenLayers[i][key].columns
-//                     )
-//                 }
-//             }
-//             hiddenLayers.push(layer)
-//         }
-//     } catch {
-//         // pass
-//     }
-//     return hiddenLayers
-// }
-
 export function dataFormatter(allowedChars) {
     const obj = {
         indexTable: {},
@@ -465,78 +422,17 @@ export function randomBetween(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min)
 }
 
-// export async function reconstructNetwork(network) {
-//     network.input.weights = convertObjectToArray(network.input.weights).slice(
-//         0,
-//         network.input.rows * network.input.columns
-//     )
-//     for (let i = 0; i < network.options.hiddenLayers.length; i++) {
-//         for (const key of keys.GRU) {
-//             network.hiddenLayers[i][key].weights = convertObjectToArray(
-//                 network.hiddenLayers[i][key].weights
-//             ).slice(
-//                 0,
-//                 network.hiddenLayers[i][key].rows *
-//                     network.hiddenLayers[i][key].columns
-//             )
-//         }
-//     }
-//     network.outputConnector.weights = convertObjectToArray(
-//         network.outputConnector.weights
-//     ).slice(0, network.outputConnector.rows * network.outputConnector.columns)
-//     network.output.weights = convertObjectToArray(network.output.weights).slice(
-//         0,
-//         network.output.rows * network.output.columns
-//     )
-//     return network
-// }
+export function getRandomFloat(lower, upper) {
+    if (lower >= upper) {
+        throw new Error('Upper bound must be greater than lower bound')
+    }
 
-// export function instantiateGRUNetwork(config) {
-//     return {
-//         type: 'GRU',
-//         options: {
-//             inputSize: config.inputCharacters.length + 1,
-//             inputRange: config.inputCharacters.length + 1,
-//             hiddenLayers: new Array(config.networkDepth).fill(
-//                 config.networkWidth
-//             ),
-//             outputSize: config.inputCharacters.length + 1,
-//             decayRate: config.decayRate,
-//             smoothEps: 1e-8,
-//             regc: config.regc,
-//             clipval: config.clipval,
-//             maxPredictionLength: 333,
-//             dataFormatter: dataFormatter(Array.from(config.inputCharacters)),
-//             learningRate: config.initialRate,
-//             errorThresh: config.errorThresh
-//         },
-//         trainOpts: {
-//             iterations: config.iterations,
-//             errorThresh: config.errorThresh,
-//             log: false,
-//             logPeriod: config.logPeriod,
-//             learningRate: config.initialRate,
-//             callbackPeriod: config.callbackPeriod,
-//             timeout: 'Infinity'
-//         },
-//         input: {
-//             rows: config.inputCharacters.length + 2,
-//             columns: config.inputCharacters.length + 1,
-//             weights: []
-//         },
-//         hiddenLayers: [],
-//         outputConnector: {
-//             rows: config.inputCharacters.length + 2,
-//             columns: config.networkWidth,
-//             weights: []
-//         },
-//         output: {
-//             rows: config.inputCharacters.length + 2,
-//             columns: 1,
-//             weights: []
-//         }
-//     }
-// }
+    const randomFraction = Math.random()
+    const range = upper - lower
+    const randomNumber = lower + randomFraction * range
+
+    return randomNumber
+}
 
 export function featherLayer(array, max = 1) {
     let count = 0

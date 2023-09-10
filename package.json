@@ -20,6 +20,7 @@
     "gun": "https://github.com/amark/gun.git",
     "natural": "^6.7.1",
     "redis": "^4.6.7",
+    "seedrandom": "^3.0.5",
     "train-stream": "^1.0.4"
   },
   "devDependencies": {

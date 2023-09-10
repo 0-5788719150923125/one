@@ -7,42 +7,42 @@ import {
     ad,
     bc,
     buildBytePairVocabulary,
-    buildNGramVocabulary,
+    buildWordLevelTokenizer,
+    getIdentity,
+    getRandomFloat,
     elapsedTimeGenerator,
     randomItemFromArray,
-    randomValueFromArray
+    randomValueFromArray,
+    tokenizer
 } from './utils.js'
 import config from './config.js'
 
 const net_name = process.env.NAME || 'brain'
-const networkType = 'diode'
+const networkType = 'circuit'
 const useGun = process.env.USE_GUN || 'false'
 
 const wall = config.wall
 
 let currentRate = config.initialRate
 
-const decayRate = Number(process.env.DECAY_RATE) || 0.999
-
 const length = await getListLength('samples')
 const trainingData = await getRandomBatchFromList('samples', length)
-
-const nGramSize = 1
-const maxTokens = 33
-const minLength = 2
-const vocabulary = buildBytePairVocabulary(
-    trainingData.map((line) => line.toLowerCase() + wall),
-    maxTokens,
-    minLength
-)
-
-// vocabulary.unshift([' '])
-
-const tokens = vocabulary.map((token) => [token])
+const tokens = buildWordLevelTokenizer(trainingData, 1000)
 console.log(tokens)
-fs.writeFileSync('data/tokens.json', JSON.stringify(tokens, null, 2))
+fs.writeFileSync('./data/tokens.json', JSON.stringify(tokens, null, 2))
 
-const net = new recurrent.GRU({
+const hashed = {}
+const reversed = {}
+tokens.map((token) => {
+    const identity = Number(getIdentity(token))
+    hashed[token] = identity
+    reversed[identity] = token
+})
+fs.writeFileSync('./data/hashed.json', JSON.stringify(hashed, null, 2))
+
+const decayRate = Number(process.env.DECAY_RATE) || 0.999
+
+const net = new recurrent.GRUTimeStep({
     hiddenLayers: new Array(config.networkDepth).fill(config.networkWidth),
     learningRate: config.initialRate,
     decayRate: decayRate,
@@ -51,7 +51,9 @@ const net = new recurrent.GRU({
     regc: config.regc,
     smoothEps: config.smoothEps,
     maxPredictionLength: Number(process.env.PREDICTION_LENGTH) || 333,
-    dataFormatter: new utilities.DataFormatter(tokens)
+    inputSize: 1,
+    inputRange: 1,
+    outputSize: 1
 })
 
 parentPort.on('message', async (data) => {
@@ -124,33 +126,52 @@ parentPort.on('message', async (data) => {
             ]
 
             for (const test of tests) {
-                const input = randomValueFromArray(inputs)
-                const normalized = `${input}${wall}`.toLowerCase()
+                const input = randomValueFromArray(inputs) + wall
+                // const normalized = `${input}${wall}`.toLowerCase()
+                const tokens = buildWordLevelTokenizer(input, 1000)
+                const tokenized = tokens.map((token) => {
+                    return Number(getIdentity(token))
+                })
+                console.log([tokenized])
                 const sample = test.temperature === 0 ? false : true
 
                 console.log(`  temp: | ${test.temperature.toString()}`)
                 console.log(` input: | ${bc.CORE}${input}${ad.TEXT}`)
 
-                let text = net.run(normalized, sample, test.temperature)
+                let result = net.run([tokenized], sample, test.temperature)
 
                 let append = null
-                if (text.length > 0 && text.startsWith(' ') !== true) {
+                if (result.length > 0) {
                     let count = 0
                     while (count < 10) {
                         count++
                         append = net.run(
-                            normalized + text,
+                            [...tokenized, ...result],
                             sample,
                             test.temperature
                         )
-                        if (append && append !== ' ') count = 10
+                        if (append && append.length > 0) count = 10
                     }
                 }
 
-                text = bc.ROOT + text + ad.TEXT
-                if (append) text = text + bc.FOLD + append + ad.TEXT
+                if (!result) continue
+                console.log(result)
+                // let text = result
+                //     .map((identity) => {
+                //         return reversed[identity] || '[REDACTED]'
+                //     })
+                //     .join(' ')
+                // text = bc.ROOT + text + ad.TEXT
+                // if (append) {
+                //     let extra = append
+                //         .map((identity) => {
+                //             return reversed[identity] || '[REDACTED]'
+                //         })
+                //         .join(' ')
+                //     text = text + bc.FOLD + extra + ad.TEXT
+                // }
 
-                console.log('output: | ' + text)
+                // console.log('output: | ' + text)
             }
             if (details.iterations === 0) return
             if (useGun === 'true') await fireSynapses(net)
@@ -160,6 +181,7 @@ parentPort.on('message', async (data) => {
             )
         },
         floodCallback: async () => {
+            // currentRate = getRandomFloat(0.00001, 0.01)
             net.updateTrainingOptions({
                 learningRate: config.initialRate,
                 iterations: config.iterations,
@@ -249,8 +271,14 @@ async function createBatch(batchSize, listSize) {
             Math.floor(Math.random() * Math.ceil(listSize / 2)) +
             Math.ceil(listSize / 2)
         const batch = await getRandomBatchFromList('samples', randomSize)
-        const normalized = batch.join(wall).toLowerCase()
-        batches.push(normalized)
+        const tokens = buildWordLevelTokenizer(batch.join(wall), 1000)
+        const tokenized = tokens.map((token) => {
+            const identity = Number(getIdentity(token))
+            reversed[identity] = token
+            return identity
+        })
+        // const normalized = batch.join(wall).toLowerCase()
+        batches.push(tokenized)
     }
     return batches
 }

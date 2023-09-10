@@ -7,6 +7,8 @@ import {
     ad,
     bc,
     buildBytePairVocabulary,
+    buildWordLevelTokenizer,
+    getRandomFloat,
     elapsedTimeGenerator,
     randomItemFromArray,
     randomValueFromArray
@@ -23,21 +25,6 @@ let currentRate = config.initialRate
 
 const decayRate = Number(process.env.DECAY_RATE) || 0.999
 
-const length = await getListLength('samples')
-const trainingData = await getRandomBatchFromList('samples', length)
-
-const maxTokens = 999
-const minLength = 3
-const vocabulary = buildBytePairVocabulary(
-    trainingData.map((line) => line.toLowerCase() + wall),
-    maxTokens,
-    minLength
-)
-
-const tokens = vocabulary.map((token) => [token])
-console.log(tokens)
-fs.writeFileSync('data/tokens.json', JSON.stringify(tokens, null, 2))
-
 const net = new recurrent.GRU({
     hiddenLayers: new Array(config.networkDepth).fill(config.networkWidth),
     learningRate: config.initialRate,
@@ -47,7 +34,7 @@ const net = new recurrent.GRU({
     regc: config.regc,
     smoothEps: config.smoothEps,
     maxPredictionLength: Number(process.env.PREDICTION_LENGTH) || 333,
-    dataFormatter: new utilities.DataFormatter(tokens)
+    dataFormatter: new utilities.DataFormatter(config.charSet)
 })
 
 parentPort.on('message', async (data) => {
@@ -156,8 +143,9 @@ parentPort.on('message', async (data) => {
             )
         },
         floodCallback: async () => {
+            currentRate = getRandomFloat(0.00001, 0.01)
             net.updateTrainingOptions({
-                learningRate: config.initialRate,
+                learningRate: currentRate,
                 iterations: config.iterations,
                 errorThresh: config.errorThresh,
                 logPeriod: config.logPeriod,
