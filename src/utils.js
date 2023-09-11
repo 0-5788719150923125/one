@@ -157,8 +157,21 @@ export function getRandomLowNumber(min, max, factor) {
     return rndres
 }
 
-export function getRandomSubset(inputString, length) {
-    const subsetLength = Math.floor(Math.random() * length) + 1
+export function roundUpToNearestWhole(number) {
+    if (number - Math.floor(number) >= 0.5) {
+        return Math.ceil(number)
+    } else {
+        return Math.floor(number)
+    }
+}
+
+export function getRandomSubset(
+    inputString,
+    minLength = 1,
+    maxLength = inputString.length
+) {
+    const subsetLength =
+        Math.floor(Math.random() * (maxLength - minLength + 1)) + minLength
     const startIndex = Math.floor(
         Math.random() * (inputString.length - subsetLength + 1)
     )
@@ -346,24 +359,21 @@ export function getRandomIdentity() {
 }
 
 export function getIdentity(seed) {
+    let rng = seedrandom()
     if (seed !== undefined) {
-        seedrandom(seed, { global: true })
+        rng = seedrandom(seed)
     }
 
-    const count = Math.floor(Math.random() * 2) + 17
-    const leading = Math.floor(Math.random() * 9) + 1
+    const count = Math.floor(rng() * 2) + 17
+    const leading = Math.floor(rng() * 9) + 1
     let identity = leading.toString()
 
     for (let i = 1; i < count; i++) {
-        const digit = Math.floor(Math.random() * 10)
+        const digit = Math.floor(rng() * 10)
         identity += digit.toString()
     }
 
-    if (seed !== undefined) {
-        seedrandom()
-    }
-
-    return identity
+    return Number(identity)
 }
 
 export function generateRandomBinaryString(maxLength = 9) {

@@ -36,7 +36,7 @@ services:
 
   kv:
     image: redis:7.0.5-alpine
-    command: redis-server --save 60 1
+    command: redis-server --save 60 1 --loglevel warning
     restart: unless-stopped
     network_mode: host
     volumes:

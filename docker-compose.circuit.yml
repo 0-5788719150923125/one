@@ -19,8 +19,8 @@ services:
       NETWORK_TYPE: circuit
       USE_GUN: ${USE_GUN:-false}
       NETWORK_WIDTH: 64
-      NETWORK_DEPTH: 4
-      BATCH_SIZE: 16
+      NETWORK_DEPTH: 6
+      BATCH_SIZE: 64
       LIST_SIZE: 64
       LEARNING_RATE: 0.001
       ERROR_THRESH: 0.000001
@@ -35,7 +35,7 @@ services:
 
   kv:
     image: redis:7.0.5-alpine
-    command: redis-server --save 60 1
+    command: redis-server --save 60 1 --loglevel warning
     restart: unless-stopped
     network_mode: host
     volumes:

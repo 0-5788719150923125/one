@@ -2,12 +2,10 @@ import fs from 'fs'
 import { parentPort } from 'worker_threads'
 import { recurrent, utilities } from 'brain.js'
 import { TrainStream } from 'train-stream'
-import { getRandomBatchFromList, getListLength } from './cache.js'
+import { getRandomBatchFromList } from './cache.js'
 import {
     ad,
     bc,
-    buildBytePairVocabulary,
-    buildWordLevelTokenizer,
     getRandomFloat,
     elapsedTimeGenerator,
     randomItemFromArray,
